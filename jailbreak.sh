@@ -134,14 +134,12 @@ while [[ $(lsusb | grep -c "iPhone") != 1 ]]; do
     sleep 2
 done
 
-$iproxy 2222 2022 &
+$iproxy 2022 2022 &
 cd ../jailbreak7
 
 Log "Mounting filesystems..."
 expect -c "
-log_user 0
-set timeout -1
-spawn ssh -p 2222 root@127.0.0.1
+spawn ssh -p 2022 root@127.0.0.1
 expect \"root@127.0.0.1's password:\"
 send \"alpine\r\"
 expect \"sh-4.0#\"
@@ -191,9 +189,8 @@ send \"exit\r\"
 expect eof"
 
 Log "Sending debs..."
-for deb in "${Debs[@]}"; do
 expect -c "
-spawn scp -P 2022 $deb root@127.0.0.1:/mnt1/private/var/root/Media/Cydia/AutoInstall
+spawn scp -P 2022 ${Debs[@]} root@127.0.0.1:/mnt1/private/var/root/Media/Cydia/AutoInstall
 expect \"root@127.0.0.1's password:\"
 send \"alpine\r\"
 expect eof"
