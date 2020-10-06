@@ -1,4 +1,4 @@
-# iPhone4Tool
-iPhone 4 scripts for Linux
+# iPhone4Down
+iPhone 4 Downgrade Script
 
-WIP, can't test because I don't have an iPhone 4 (yet)
+WIP
