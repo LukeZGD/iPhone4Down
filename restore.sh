@@ -9,7 +9,7 @@ if [[ $1 != 'NoColor' ]]; then
 fi
 
 function Clean {
-    rm -rf iP*/ shsh/ tmp/ BuildManifest.plist
+    rm -rf iP*/ shsh/ tmp/ iBoot *_iPhone3,1_7.1.2-*.shsh2 FirmwareBundles src
 }
 
 function Echo {
@@ -41,17 +41,21 @@ function Main {
     if [[ $OSTYPE == "linux-gnu" ]]; then
         . /etc/os-release 2>/dev/null
         platform="linux"
+        bspatch="bspatch"
         ideviceenterrecovery="ideviceenterrecovery"
         ideviceinfo="ideviceinfo"
         idevicerestore="sudo LD_LIBRARY_PATH=resources/lib resources/tools/idevicerestore_linux"
+        [[ $UBUNTU_CODENAME == "bionic" ]] && idevicerestore="${idevicerestore}_bionic"
         iproxy="iproxy"
         irecoverychk="resources/libirecovery/bin/irecovery"
         irecovery="sudo LD_LIBRARY_PATH=resources/lib $irecoverychk"
         tsschecker="env LD_LIBRARY_PATH=resources/lib resources/tools/tsschecker_linux"
-        cherrydir="resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
+        cherry="resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
+        pwnedDFU="sudo $cherry/pwnedDFU"
 
     elif [[ $OSTYPE == "darwin"* ]]; then
         platform="macos"
+        bspatch="resources/tools/bspatch_$platform"
         ideviceenterrecovery="resources/libimobiledevice_$platform/ideviceenterrecovery"
         ideviceinfo="resources/libimobiledevice_$platform/ideviceinfo"
         idevicerestore="resources/tools/idevicerestore_$platform"
@@ -59,9 +63,9 @@ function Main {
         irecovery="resources/libimobiledevice_$platform/irecovery"
         irecoverychk=$irecovery
         tsschecker="resources/tools/tsschecker_$platform"
-        cherrydir="resources/ch3rryflower/Tools/macos/UNTETHERED"
+        cherry="resources/ch3rryflower/Tools/macos/UNTETHERED"
+        pwnedDFU="$cherry/pwnedDFU"
     fi
-    cherry="$cherrydir/cherry"
     partialzip="resources/tools/partialzip_$platform"
     
     [[ ! -d resources ]] && Error "resources folder cannot be found. Replace resources folder and try again" "If resources folder is present try removing spaces from path/folder name"
@@ -73,12 +77,13 @@ function Main {
     
     if [[ $1 == Install ]] || [ ! $(which $irecoverychk) ] || [ ! $(which $ideviceinfo) ]; then
         cd resources
-        rm -rf firmware ipwndfu libimobiledevice_$platform libirecovery
+        rm -rf libimobiledevice_$platform libirecovery
         cd ..
         InstallDependencies
     fi
     
     if [[ ! -d resources/ch3rryflower ]]; then
+        mkdir tmp 2>/dev/null
         cd tmp
         Echo "Downloading ch3rryflower..."
         SaveFile https://github.com/dora2-iOS/ch3rryflower/archive/316d2cdc5351c918e9db9650247b91632af3f11f.zip ch3rryflower.zip 790d56db354151b9740c929e52c097ba57f2929d
@@ -109,9 +114,16 @@ function Main {
         UniqueChipID=$(echo "$ideviceinfo2" | grep 'UniqueChipID' | cut -c 15-)
         UniqueDeviceID=$(echo "$ideviceinfo2" | grep 'UniqueDeviceID' | cut -c 17-)
     fi
-    [[ $ProductType == iPhone3,1 ]] && HWModel=n90
-    [[ $ProductType == iPhone3,2 ]] && HWModel=n90b
-    [[ $ProductType == iPhone3,3 ]] && HWModel=n92
+    if [[ $ProductType == iPhone3,1 ]]; then
+        HWModel=n90
+        iBSSURL=http://appldnld.apple.com/iOS7.1/031-4812.20140627.cq6y8/iPhone3,1_7.1.2_11D257_Restore.ipsw
+    elif [[ $ProductType == iPhone3,2 ]]; then
+        HWModel=n90b
+        iBSSURL=http://appldnld.apple.com/iOS7.1/031-4785.20140627.zZ42j/iPhone3,2_7.1.2_11D257_Restore.ipsw
+    elif [[ $ProductType == iPhone3,3 ]]; then
+        HWModel=n92
+        iBSSURL=http://appldnld.apple.com/iOS7.1/031-4768.20140627.DXmmp/iPhone3,3_7.1.2_11D257_Restore.ipsw
+    fi
     iBSS="iBSS.${HWModel}ap.RELEASE"
     
     if [ ! $UniqueChipID ]; then
@@ -125,20 +137,20 @@ function Main {
     Echo "* Platform: $platform"
     echo
     
-    read -p "$(Input 'Is this device jailbroken and have OpenSSH installed? (kloader will be used) (Y/n): ')" Jailbroken
-    [[ $Jailbroken == n ]] || [[ $Jailbroken == N ]] && RecoveryDevice=1
+    if [[ $DFUDevice != 1 ]] && [[ $RecoveryDevice != 1 ]]; then
+        Log "Device in normal mode detected."
+        Echo "* Enter Y if your device is jailbroken and have OpenSSH installed (kloader will be used)"
+        Echo "* Enter N if your device is not jailbroken (send device to recovery/DFU)"
+        read -p "$(Input 'Is this device jailbroken and have OpenSSH installed? (Y/n): ')" Jailbroken
+        [[ $Jailbroken == n ]] || [[ $Jailbroken == N ]] && Recovery
+    elif [[ $RecoveryDevice == 1 ]]; then
+        Recovery
+    fi
     
-    [[ $RecoveryDevice == 1 ]] && Recovery
     if [[ $DFUDevice == 1 ]] && [[ $pwnDFUDevice != 1 ]]; then
-        Log "$ProductType in DFU mode detected."
-        Input "This device is in:"
-        select opt in "kDFU/pwnDFU mode" "DFU mode" "(Any other key to exit)"; do
-            case $opt in
-                "kDFU/pwnDFU mode" ) pwnDFUDevice=1; break;;
-                "DFU mode" ) PwnedDFU; break;;
-                * ) exit;;
-            esac
-        done
+        Log "Device in DFU mode detected."
+        read -p "$(Input 'Is this device in kDFU/pwnDFU mode? (y/N): ')" DFUManual
+        [[ $DFUManual == y ]] || [[ $DFUManual == Y ]] && pwnDFUDevice=1 || EnterPwnDFU
     fi
     [[ $pwnDFUDevice == 1 ]] && DFUManual=1
     
@@ -147,13 +159,13 @@ function Main {
     else
         Selection=("Downgrade device")
         [[ $pwnDFUDevice != 1 ]] && Selection+=("Just put device in kDFU mode")
-        Selection+=("Disable/Uninstall exploit" "(Re-)Install Dependencies" "(Any other key to exit)")
+        Selection+=("Disable/Enable exploit" "(Re-)Install Dependencies" "(Any other key to exit)")
         Echo "*** Main Menu ***"
         Input "Select an option:"
         select opt in "${Selection[@]}"; do
             case $opt in
                 "Downgrade device" ) Mode='Downgrade'; break;;
-                "Disable/Uninstall exploit" ) Mode='Disable'; break;;
+                "Disable/Enable exploit" ) Mode='Remove4'; break;;
                 "Just put device in kDFU mode" ) Mode='kDFU'; break;;
                 "(Re-)Install Dependencies" ) InstallDependencies;;
                 * ) exit;;
@@ -164,7 +176,7 @@ function Main {
 }
 
 function SelectVersion {
-    [ $ProductType == iPhone3,1 ] && Selection=("iOS 6.1.3" "iOS 5.1.1 (9B206)" "iOS 5.1.1 (9B208)") || Selection=()
+    [ $ProductType == iPhone3,1 ] && Selection=("iOS 6.1.3" "iOS 5.1.1 (9B208)") || Selection=()
     [[ $Mode != 'Downgrade' ]] && Action
     Selection+=("(Any other key to exit)")
     Input "Select iOS version:"
@@ -184,18 +196,24 @@ function Action {
     if [[ $Mode == 'Downgrade' ]]; then
         read -p "$(Input 'Jailbreak the selected iOS version? (y/N): ')" Jailbreak
         [[ $Jailbreak == y ]] || [[ $Jailbreak == Y ]] && Jailbreak=1
-    elif [[ $Mode == 'Disable' ]] && [[ $platform == linux ]]; then
-        cp -rf resources/ch3rryflower/Tools/macos/UNTETHERED/remove_for_i4 $cherrydir
-        sed -i "s|./ipwn|sudo python2 ipwn|g" $cherrydir/remove_for_i4/disable
     fi
 
     [[ $Mode == 'Downgrade' ]] && Downgrade
-    [[ $Mode == 'Disable' ]] && cd $cherrydir/remove_for_i4 && ./disable
+    [[ $Mode == 'Remove4' ]] && Remove4
     [[ $Mode == 'kDFU' ]] && kDFU
     exit
 }
 
 function kDFU {
+    IPSW7="iPhone3,1_7.1.2_11D257_Restore"
+    if [ -e $IPSW7.ipsw ]; then
+        unzip -o -j $IPSW7.ipsw Firmware/dfu/$iBSS.dfu -d tmp
+    else
+        Log "Downloading iBSS..."
+        $partialzip $iBSSURL Firmware/dfu/$iBSS.dfu $iBSS.dfu
+        [ ! -e $iBSS.dfu ] && Error "Downloading iBSS failed."
+        mv $iBSS.dfu tmp
+    fi
     Log "Patching iBSS..."
     $bspatch tmp/$iBSS.dfu tmp/pwnediBSS resources/patches/$iBSS.patch
     
@@ -208,7 +226,7 @@ function kDFU {
     Log "Copying stuff to device via SSH..."
     Echo "* Make sure OpenSSH is installed on the device!"
     Echo "* Enter root password of your iOS device when prompted, default is 'alpine'"
-    scp -P 2222 resources/tools/$kloader tmp/pwnediBSS tmp/pwn.sh root@127.0.0.1:/
+    scp -P 2222 resources/tools/$kloader tmp/pwnediBSS root@127.0.0.1:/
     [ $? == 1 ] && Error "Cannot connect to device via SSH. Please check your ~/.ssh/known_hosts file and try again" "You may also run: rm ~/.ssh/known_hosts"
     ssh -p 2222 root@127.0.0.1 "/$kloader /pwnediBSS" &
     echo
@@ -251,15 +269,45 @@ function Recovery {
     done
     sleep 2
     [[ $($irecovery -q 2>/dev/null | grep 'MODE' | cut -c 7-) == "DFU" ]] && DFUDevice=1
-    [[ $DFUDevice == 1 ]] && PwnedDFU
-    Error "Failed to detect device in DFU mode. Please run the script again"
+    if [[ $DFUDevice == 1 ]]; then
+        EnterPwnDFU
+    else
+        Error "Failed to detect device in DFU mode. Please run the script again"
+    fi
 }
 
-function PwnedDFU {
-    Log "Entering pwnDFU mode..."
-    sudo $cherrydir/pwnedDFU -p
-    [ $? != 0 ] && Error "Failed to enter pwnDFU mode. Please run the script again" "./restore.sh Downgrade"
-    pwnDFUDevice=1
+function EnterPwnDFU {
+    echo -e "\n$(Log 'Entering pwnDFU mode...')"
+    $pwnedDFU -p
+    pwnDFUDevice=$($irecovery -q | grep -c 'PWND')
+    [[ $pwnDFUDevice != 1 ]] && Error "Failed to enter pwnDFU mode. Please run the script again" "./restore.sh Downgrade"
+}
+
+function Remove4 {
+    [[ $DFUDevice != 1 ]] && Error "Your device must be in DFU mode to select this option."
+    Input "Select option:"
+    select opt in "Disable exploit" "Enable exploit" "(Any other key to exit)"; do
+        case $opt in
+            "Disable exploit" ) Rec=0; break;;
+            "Enable exploit" ) Rec=2; break;;
+            * ) exit;;
+        esac
+    done
+    Log "Downloading iBSS..."
+    $partialzip http://appldnld.apple.com/iPhone4/041-1966.20110721.V3Ufe/iPhone3,1_4.3.5_8L1_Restore.ipsw Firmware/dfu/iBSS.n90ap.RELEASE.dfu iBSS
+    mv iBSS tmp
+    Log "Patching iBSS..."
+    $bspatch tmp/iBSS tmp/pwnediBSS resources/patches/iBSS.n90ap.8L1.patch
+    Log "Booting iBSS..."
+    $pwnedDFU -f tmp/pwnediBSS
+    sleep 2
+    Log "Running commands..."
+    $irecovery -c "setenv boot-partition $Rec"
+    $irecovery -c "saveenv"
+    $irecovery -c "setenv auto-boot true"
+    $irecovery -c "saveenv"
+    $irecovery -c "reset"
+    Log "Done!"
 }
 
 function Downgrade {
@@ -268,22 +316,8 @@ function Downgrade {
     [[ ! -e $IPSW.ipsw ]] && Error "iOS $OSVer-$BuildVer IPSW cannot be found."
     [[ ! -e $IPSW7.ipsw ]] && Error "iOS 7.1.2 IPSW cannot be found."
     
-    if [ ! $DFUManual ]; then
-        Log "Extracting iBSS from IPSW..."
-        mkdir -p saved/$ProductType 2>/dev/null
-        unzip -o -j $IPSW.ipsw Firmware/dfu/iBSS.n90ap.RELEASE.dfu -d saved/$ProductType
-        kDFU
-    fi
+    [ ! $DFUManual ] && kDFU
     
-    if [[ ! -d resources/ch3rryflower ]]; then
-        Echo "Downloading ch3rryflower..."
-        SaveFile https://github.com/dora2-iOS/ch3rryflower/archive/316d2cdc5351c918e9db9650247b91632af3f11f.zip 790d56db354151b9740c929e52c097ba57f2929d
-        cd resources
-        unzip -q ../tmp/ch3rryflower.zip -d .
-        mv ch3rryflower* ch3rryflower
-        cd ..
-    fi
-        
     if [[ $OSVer == 6.1.3 ]]; then
         IV="b559a2c7dae9b95643c6610b4cf26dbd"
         Key="3dbe8be17af793b043eed7af865f0b843936659550ad692db96865c00171959f"
@@ -296,40 +330,43 @@ function Downgrade {
         IV="71fe96da25812ff341181ba43546ea4f"
         Key="6377d34deddf26c9b464f927f18b222be75f1b5547e537742e7dfca305660fea"
     fi
-    if [[ $OSVer == 5 ]] || [[ $OSVer == 5b ]]; then
-        JBFiles=(Cydia5.tar unthredeh4hil.tar fstab_rw.tar)
+    if [[ $OSVer == 5.1.1 ]]; then
+        JBFiles=(Cydia5.tar unthredeh4il.tar fstab_rw.tar)
         JBSHA1=f5b5565640f7e31289919c303efe44741e28543a
     fi
+    
+    Custom="Custom"
+    [[ $Jailbreak == 1 ]] && Custom="CustomJB"
+    if [[ $Jailbreak == 1 ]] && [[ ! -e resources/jailbreak/${JBFiles[0]} ]]; then
+        Log "Downloaading jailbreak files..."
+        cd tmp
+        SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/jailbreak/${JBFiles[0]} ${JBFiles[0]} $JBSHA1
+        cp ${JBFiles[0]} ../resources/jailbreak
+        cd ..
+    fi
+    IPSWCustom="iPhone3,1_${OSVer}_${BuildVer}_${Custom}"
     for i in {0..2}; do
         JBFiles[$i]=resources/jailbreak/${JBFiles[$i]}
     done
     
-    Custom="Custom"
-    if [[ $Jailbreak == 1 ]]; then
-        if [[ ! -e ${JBFiles[0]} ]]; then
-            SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/jailbreak/${JBFiles[0]} resources/jailbreak/${JBFiles[0]} $JBSHA1
-        fi
-        cp * ../../resources/jailbreak
-        cd ../..
-        Custom="CustomJB"
-    fi
-    IPSWCustom="iPhone3,1_${OSVer}_${BuildVer}_${Custom}"
-    
-    if [[ ! -e $IPSWCustom ]]; then
+    if [[ ! -e $IPSWCustom.ipsw ]]; then
         Echo "* By default, memory option is set to Y, you may select N later if you encounter problems"
         Echo "* If it doesn't work with both, you might not have enough RAM or tmp storage"
         read -p "$(Input 'Memory option? (press ENTER if unsure) (Y/n): ')" JBMemory
         [[ $JBMemory != n ]] && [[ $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW with ch3rryflower..."
-        $cherrydir/make_iBoot.sh $IPSW.ipsw -iv $IV -k $Key
-        $cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot ${JBFiles[@]}
+        sed -z -i "s|\n../bin|\n../$cherry/bin|g" $cherry/make_iBoot.sh
+        $cherry/make_iBoot.sh $IPSW.ipsw -iv $IV -k $Key
+        ln -sf $cherry/FirmwareBundles FirmwareBundles
+        ln -sf $cherry/src src
+        $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot ${JBFiles[@]}
     fi
     [ ! -e $IPSWCustom.ipsw ] && Error "Failed to find custom IPSW. Please run the script again" "You may try selecting N for memory option"
     IPSW=$IPSWCustom
     
     Log "Saving 7.1.2 blobs with tsschecker..."
-    $tsschecker -d $ProductType -i $OSVer -e $UniqueChipID -m resources/BuildManifest.plist -s
-    SHSH=$(ls ${UniqueChipID}_${ProductType}_${OSVer}-${BuildVer}_*.shsh2)
+    $tsschecker -d $ProductType -i 7.1.2 -e $UniqueChipID -m resources/BuildManifest.plist -s
+    SHSH=$(ls ${UniqueChipID}_${ProductType}_7.1.2-11D257_*.shsh2)
     [ ! $SHSH ] && Error "Saving $OSVer blobs failed. Please run the script again"
     Log "Successfully saved 7.1.2 blobs."
     
@@ -352,16 +389,18 @@ function InstallDependencies {
     Log "Installing dependencies..."
     if [[ $ID == "arch" ]] || [[ $ID_LIKE == "arch" ]]; then
         # Arch
-        sudo pacman -Sy --noconfirm --needed bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils
+        sudo pacman -Sy --noconfirm --needed bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim
         
     elif [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]]; then
         # Ubuntu
         sudo add-apt-repository universe
         sudo apt update
-        sudo apt install -y autoconf automake bsdiff build-essential checkinstall curl git libglib2.0-dev libimobiledevice-utils libreadline-dev libtool-bin libusb-1.0-0-dev libusbmuxd-tools openssh-client usbmuxd usbutils
+        sudo apt install -y autoconf automake bsdiff build-essential checkinstall curl git libglib2.0-dev libimobiledevice-utils libreadline-dev libtool-bin libusb-1.0-0-dev libusbmuxd-tools openssh-client usbmuxd usbutils xxd
         SavePkg
         if [[ $UBUNTU_CODENAME == "bionic" ]]; then
             sudo dpkg -i libzip5.deb
+            SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/tools_linux_bionic.zip tools_linux_bionic.zip 959abbafacfdaddf87dd07683127da1dab6c835f
+            unzip tools_linux_bionic.zip -d ../resources/tools
         else
             sudo apt install -y libzip5
         fi
@@ -373,7 +412,7 @@ function InstallDependencies {
         
     elif [[ $ID == "fedora" ]]; then
         # Fedora
-        sudo dnf install -y automake binutils bsdiff git libimobiledevice-utils libtool libusb-devel libusbmuxd-utils make libzip perl-Digest-SHA readline-devel
+        sudo dnf install -y automake binutils bsdiff git libimobiledevice-utils libtool libusb-devel libusbmuxd-utils make libzip perl-Digest-SHA readline-devel vim-common
         SavePkg
         if (( $VERSION_ID <= 32 )); then
             ln -sf /usr/lib64/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6

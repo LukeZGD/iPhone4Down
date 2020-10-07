@@ -1,9 +1,14 @@
 *.ipsw
+*.shsh2
+FirmwareBundles
+iBoot
 iP*
+src
 resources/ch3rryflower/
 resources/ipwndfu/
-resources/jailbreak/
+resources/jailbreak/Cydia*
 resources/jailbreak7/
 resources/libirecovery/
 resources/ramdisk/
+shsh/
 tmp/

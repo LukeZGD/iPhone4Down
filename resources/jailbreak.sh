@@ -1,5 +1,5 @@
 #!/bin/bash
-trap 'rm -rf tmp/; exit' INT TERM EXIT
+trap 'Clean; exit' INT TERM EXIT
 if [[ $1 != 'NoColor' ]]; then
     Color_R=$(tput setaf 9)
     Color_G=$(tput setaf 10)
@@ -7,6 +7,10 @@ if [[ $1 != 'NoColor' ]]; then
     Color_Y=$(tput setaf 11)
     Color_N=$(tput sgr0)
 fi
+
+function Clean {
+    rm -rf tmp/
+}
 
 function Echo {
     echo "${Color_B}$1 ${Color_N}"
@@ -51,27 +55,31 @@ panguaxe.tar
 tar)
 
 if [[ $OSTYPE == "linux-gnu" ]]; then
-    cherrydir="ch3rryflower/Tools/ubuntu/UNTETHERED"
+    platform='linux'
+    cherry="ch3rryflower/Tools/ubuntu/UNTETHERED"
     irecovery="sudo tools/irecovery_linux"
+    irecovery2="sudo libirecovery/bin/irecovery"
     iproxy="iproxy"
     partialzip="tools/partialzip_linux"
     python="sudo python2"
 elif [[ $OSTYPE == "darwin"* ]]; then
-    cherrydir="ch3rryflower/Tools/macos/UNTETHERED"
+    platform='macos'
+    cherry="ch3rryflower/Tools/macos/UNTETHERED"
     iproxy="resources/libimobiledevice_$platform/iproxy"
     irecovery="sudo tools/irecovery_macos"
+    irecovery2="libimobiledevice_$platform/irecovery"
     partialzip="tools/partialzip_macos"
     python="python"
 fi
 
-Echo "***** iPhone4Tool *****"
-Echo "** Script by LukeZGD **"
+Echo "***** iPhone4Down *****"
+Echo "* Script by LukeZGD"
 echo
-Echo "Mode: Jailbreak 7.1.2"
+Echo "Mode: Jailbreak/Ramdisk"
 Echo "* This uses files and script from 4tify by Zurac-Apps"
 mkdir tmp 2>/dev/null
 
-if [[ ! -d jailbreak7 ]] || [[ ! -d ramdisk ]]; then
+if [[ ! -d ramdisk ]]; then # [ ! -d jailbreak7 ]] || 
     JailbreakLink=https://github.com/Zurac-Apps/4tify/raw/ad319e2774f54dc3a355812cc287f39f7c38cc66
     cd tmp
     mkdir ramdisk jailbreak7
@@ -80,15 +88,15 @@ if [[ ! -d jailbreak7 ]] || [[ ! -d ramdisk ]]; then
     for file in "${Ramdisk[@]}"; do
         curl -L $JailbreakLink/support_files/7.1.2/Ramdisk/$file -o $file
     done
-    cd ../jailbreak7
-    Log "Downloading jailbreak files from 4tify repo..."
-    for file in "${Jailbreak7[@]}"; do
-        curl -L $JailbreakLink/support_files/7.1.2/Jailbreak/$file -o $file
-    done
-    for file in "${Debs[@]}"; do
-        curl -L $JailbreakLink/support_files/7.1.2/Jailbreak/$file -o $file
-    done
-    cd ..
+    #cd ../jailbreak7
+    #Log "Downloading jailbreak files from 4tify repo..."
+    #for file in "${Jailbreak7[@]}"; do
+    #    curl -L $JailbreakLink/support_files/7.1.2/Jailbreak/$file -o $file
+    #done
+    #for file in "${Debs[@]}"; do
+    #    curl -L $JailbreakLink/support_files/7.1.2/Jailbreak/$file -o $file
+    #done
+    #cd ..
     cp -rf ramdisk jailbreak7 ..
     cd ..
 fi
@@ -98,23 +106,24 @@ if [[ ! -d ch3rryflower ]]; then
 fi
 
 Log "Entering pwnDFU mode..."
-sudo $cherrydir/pwnedDFU -p
+sudo $cherry/pwnedDFU -p
 [ $? != 0 ] && Error "Failed to enter pwnDFU mode. Please run the script again"
 
 Log "Sending iBSS and iBEC..."
 $irecovery -f ramdisk/iBSS.n90ap.RELEASE.dfu
+sleep 2
 $irecovery -f ramdisk/iBEC.n90ap.RELEASE.dfu
 
 Log "Waiting for device..."
 while [[ $RecoveryDevice != 1 ]]; do
-    [[ $($irecovery -q 2>/dev/null | grep 'MODE' | cut -c 7-) == "Recovery" ]] && RecoveryDevice=1
+    [[ $($irecovery2 -q 2>/dev/null | grep 'MODE' | cut -c 7-) == "Recovery" ]] && RecoveryDevice=1
 done
 
 cd ramdisk
 Log "Booting..."
 [[ $platform == linux ]] && ExpectSudo=sudo
 $ExpectSudo expect -c "
-spawn ../tools/irecovery -s
+spawn ../tools/irecovery_$platform -s
 expect \"iRecovery>\"
 send \"/send DeviceTree.n90ap.img3\r\"
 expect \"iRecovery>\"
@@ -137,11 +146,11 @@ while [[ $(lsusb | grep -c "iPhone") != 1 ]]; do
 done
 
 $iproxy 2022 22 &
-cd ../jailbreak7
+#cd ../jailbreak7
 
 Log "Mounting filesystems..."
 expect -c "
-spawn ssh -p 2022 root@127.0.0.1
+spawn ssh -o StrictHostKeyChecking=no -p 2022 root@127.0.0.1
 expect \"root@127.0.0.1's password:\"
 send \"alpine\r\"
 expect \"sh-4.0#\"
@@ -151,6 +160,11 @@ send \"mount_hfs /dev/disk0s1s2 /mnt1/private/var \r\"
 expect \"sh-4.0#\"
 send \"exit \r\"
 expect eof"
+
+# Stop here for now (ramdisk only)
+Log "Device is now in SSH ramdisk mode. (filesystems are also mounted in /mnt1)"
+Log "Jailbreak function is disabled for now"
+exit
 
 Log "Sending jailbreak files..."
 expect -c "
