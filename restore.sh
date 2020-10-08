@@ -114,6 +114,12 @@ function Main {
         UniqueChipID=$(echo "$ideviceinfo2" | grep 'UniqueChipID' | cut -c 15-)
         UniqueDeviceID=$(echo "$ideviceinfo2" | grep 'UniqueDeviceID' | cut -c 17-)
     fi
+    if [ ! $UniqueChipID ]; then
+        Error "No device detected."
+    elif [[ $ProductType != iPhone3* ]]; then
+        Error "Your device $ProductType is not supported."
+    fi
+    
     if [[ $ProductType == iPhone3,1 ]]; then
         HWModel=n90
         iBSSURL=http://appldnld.apple.com/iOS7.1/031-4812.20140627.cq6y8/iPhone3,1_7.1.2_11D257_Restore.ipsw
@@ -126,18 +132,12 @@ function Main {
     fi
     iBSS="iBSS.${HWModel}ap.RELEASE"
     
-    if [ ! $UniqueChipID ]; then
-        Error "No device detected."
-    elif [[ $ProductType != iPhone3* ]]; then
-        Error "Your device $ProductType is not supported."
-    fi
-    
     Clean
     mkdir tmp
     Echo "* Platform: $platform"
     echo
     
-    if [[ $DFUDevice != 1 ]] && [[ $RecoveryDevice != 1 ]]; then
+    if [[ $DFUDevice != 1 ]] && [[ $RecoveryDevice != 1 ]] && [[ $ProductType == iPhone3,1 ]]; then
         Log "Device in normal mode detected."
         Echo "* Enter Y if your device is jailbroken and have OpenSSH installed (kloader will be used)"
         Echo "* Enter N if your device is not jailbroken (send device to recovery/DFU)"
@@ -176,24 +176,53 @@ function Main {
 }
 
 function SelectVersion {
-    [ $ProductType == iPhone3,1 ] && Selection=("iOS 6.1.3" "iOS 5.1.1 (9B208)") || Selection=()
+    if [ $ProductType == iPhone3,1 ]; then
+        Selection=("6.1.3" "5.1.1 (9B208)" "More versions (untested)")
+        Selection2=("6.1.2" "6.1" "6.0.1" "6.0" "5.1.1 (9B206)" "5.1" "5.0.1" "5.0")
+    else
+        Selection=()
+    fi
     [[ $Mode != 'Downgrade' ]] && Action
     Selection+=("(Any other key to exit)")
     Input "Select iOS version:"
     select opt in "${Selection[@]}"; do
         case $opt in
-            "iOS 6.1.3" ) OSVer='6.1.3'; BuildVer='10B329'; break;;
-            "iOS 5.1.1 (9B206)" ) OSVer='5.1.1'; BuildVer='9B206'; break;;
-            "iOS 5.1.1 (9B208)" ) OSVer='5.1.1'; BuildVer='9B208'; break;;
+            "6.1.3" ) OSVer='6.1.3'; BuildVer='10B329'; break;;
+            "5.1.1 (9B208)" ) OSVer='5.1.1'; BuildVer='9B208'; break;;
+            "4.3.5" ) OSVer='4.3.5'; BuildVer='8L1'; break;;
+            "More versions (untested)" ) OSVer='More'; break;;
             *) exit;;
         esac
     done
+    if [[ $OSVer == 'More' ]]; then
+        select opt in "${Selection2[@]}"; do
+            case $opt in
+                "7.1.1" ) OSVer='7.1.1'; BuildVer='11D201'; break;;
+                "7.1" ) OSVer='7.1'; BuildVer='11D169'; break;;
+                "7.0.6" ) OSVer='7.0.6'; BuildVer='11B651'; break;;
+                "7.0.4" ) OSVer='7.0.4'; BuildVer='11B554a'; break;;
+                "7.0.3" ) OSVer='7.0.3'; BuildVer='11B511'; break;;
+                "7.0.2" ) OSVer='7.0.2'; BuildVer='11A501'; break;;
+                "7.0" ) OSVer='7.0'; BuildVer='11A465'; break;;
+                "6.1.2" ) OSVer='6.1.2'; BuildVer='10B146'; break;;
+                "6.1" ) OSVer='6.1'; BuildVer='10B144'; break;;
+                "6.0.1" ) OSVer='6.0.1'; BuildVer='10A523'; break;;
+                "6.0" ) OSVer='6.0'; BuildVer='10A403'; break;;
+                "5.1.1 (9B206)" ) OSVer='5.1.1'; BuildVer='9B206'; break;;
+                "5.1" ) OSVer='5.1'; BuildVer='9B176'; break;;
+                "5.0.1" ) OSVer='5.0.1'; BuildVer='9A405'; break;;
+                "5.0" ) OSVer='5.0'; BuildVer='9A334'; break;;
+                "4.3.3" ) OSVer='4.3.3'; BuildVer='8J2'; break;;
+                *) exit;;
+            esac
+        done
+    fi
     Action
 }
 
 function Action {
     Log "Option: $Mode"
-    if [[ $Mode == 'Downgrade' ]]; then
+    if [[ $Mode == 'Downgrade' ]] && [[ $OSVer != 7* ]]; then
         read -p "$(Input 'Jailbreak the selected iOS version? (y/N): ')" Jailbreak
         [[ $Jailbreak == y ]] || [[ $Jailbreak == Y ]] && Jailbreak=1
     fi
@@ -293,9 +322,15 @@ function Remove4 {
             * ) exit;;
         esac
     done
-    Log "Downloading iBSS..."
-    $partialzip http://appldnld.apple.com/iPhone4/041-1966.20110721.V3Ufe/iPhone3,1_4.3.5_8L1_Restore.ipsw Firmware/dfu/iBSS.n90ap.RELEASE.dfu iBSS
-    mv iBSS tmp
+    if [ ! -e saved/iBSS_8L1 ]; then
+        Log "Downloading iBSS..."
+        $partialzip http://appldnld.apple.com/iPhone4/041-1966.20110721.V3Ufe/iPhone3,1_4.3.5_8L1_Restore.ipsw Firmware/dfu/iBSS.n90ap.RELEASE.dfu iBSS
+        mkdir saved 2>/dev/null
+        cp iBSS saved/iBSS_8L1
+        mv iBSS tmp
+    else
+        mv saved/iBSS_8L1 tmp/iBSS
+    fi
     Log "Patching iBSS..."
     $bspatch tmp/iBSS tmp/pwnediBSS resources/patches/iBSS.n90ap.8L1.patch
     Log "Booting iBSS..."
@@ -318,36 +353,110 @@ function Downgrade {
     
     [ ! $DFUManual ] && kDFU
     
-    if [[ $OSVer == 6.1.3 ]]; then
-        IV="b559a2c7dae9b95643c6610b4cf26dbd"
-        Key="3dbe8be17af793b043eed7af865f0b843936659550ad692db96865c00171959f"
-        JBFiles=(Cydia6.tar p0sixspwn.tar fstab_rw.tar)
-        JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
+    if [[ $OSVer == 7.1.1 ]]; then
+        IV=b110991061d76f74c1fc05ddd7cff540
+        Key=c6fbf428e0105ab22b2abaefd20ca22c2084e200f74e8a3b08298a54f8bfe28f
+    elif [[ $OSVer == 7.1 ]]; then
+        IV=9fe5b6785126c8fc5787582df9efcf94
+        Key=b68612f21e377bd1f685e9031be159a724e931eff162db245c63b7b692cefa7e
+    elif [[ $OSVer == 7.0.6 ]]; then
+        IV=12af3a975f0346e89d3a34e73b4e0ae1
+        Key=d7b5bb9b90f19493449ab17fda63afdb16069ad5b65026bb11b4db223fdd4be1
+    elif [[ $OSVer == 7.0.4 ]]; then
+        IV=67087ac7f28c77cdf9110356f476540b
+        Key=2a6940252b5cb19b86efb9005cdd5fd713290e573dc760f5a3e05df9e868bb89
+    elif [[ $OSVer == 7.0.3 ]]; then
+        IV=7cb97df787dcc6367816b03492b225f9
+        Key=bd56f0886e21f233f519d4db20fd044b9208882a6fb791553a75eb4e0c45bbc5
+    elif [[ $OSVer == 7.0.2 ]]; then
+        IV=65db9a4e4f64bb79a55d76d98ce1457b
+        Key=5cd910c268813cb4008e5b33e01f761c0794ed1437737b4d386727d17fac79d1
+    elif [[ $OSVer == 7.0 ]]; then
+        IV=5bf099d9db5cf1009329e527a378c8be
+        Key=e1fef31c8aabcdca2a3887ba21c0e2113c41a5617380657ab6a487993b39f9a8
+    elif [[ $OSVer == 6.1.3 ]]; then
+        IV=b559a2c7dae9b95643c6610b4cf26dbd
+        Key=3dbe8be17af793b043eed7af865f0b843936659550ad692db96865c00171959f
+    elif [[ $OSVer == 6.1.2 ]]; then
+        IV=c939629e3473fdb67deae0c45582506d
+        Key=cbcd007712618cb6ab3be147f0317e22e7cceadb344e99ea1a076ef235c2c534
+    elif [[ $OSVer == 6.1 ]]; then
+        IV=4d76b7e25893839cfca478b44ddef3dd
+        Key=891ed50315763dac51434daeb8543b5975a555fb8388cc578d0f421f833da04d
+    elif [[ $OSVer == 6.0.1 ]]; then
+        IV=44ffe675d6f31167369787a17725d06c
+        Key=8d539232c0e906a9f60caa462f189530f745c4abd81a742b4d1ec1cb8b9ca6c3
+    elif [[ $OSVer == 6.0 ]]; then
+        IV=7891928b9dd0dd919778743a2c8ec6b3
+        Key=838270f668a05a60ff352d8549c06d2f21c3e4f7617c72a78d82c92a3ad3a045
     elif [[ $BuildVer == 9B206 ]]; then
-        IV="b1846de299191186ce3bbb22432eca12"
-        Key="e8e26976984e83f967b16bdb3a65a3ec45003cdf2aaf8d541104c26797484138"
+        IV=b1846de299191186ce3bbb22432eca12
+        Key=e8e26976984e83f967b16bdb3a65a3ec45003cdf2aaf8d541104c26797484138
     elif [[ $BuildVer == 9B208 ]]; then
-        IV="71fe96da25812ff341181ba43546ea4f"
-        Key="6377d34deddf26c9b464f927f18b222be75f1b5547e537742e7dfca305660fea"
-    fi
-    if [[ $OSVer == 5.1.1 ]]; then
-        JBFiles=(Cydia5.tar unthredeh4il.tar fstab_rw.tar)
-        JBSHA1=f5b5565640f7e31289919c303efe44741e28543a
+        IV=71fe96da25812ff341181ba43546ea4f
+        Key=6377d34deddf26c9b464f927f18b222be75f1b5547e537742e7dfca305660fea
+    elif [[ $OSVer == 5.1 ]]; then
+        IV=b1846de299191186ce3bbb22432eca12
+        Key=e8e26976984e83f967b16bdb3a65a3ec45003cdf2aaf8d541104c26797484138
+    elif [[ $OSVer == 5.0.1 ]]; then
+        IV=49eb54980a0024f91b079faf0ee87f67
+        Key=c3a49f0059075e1453dacec4c3e4d89bd7a433ee19c8d48e4695d89b4c84a373
+    elif [[ $OSVer == 5.0 ]]; then
+        IV=15dd404efbb24a842d08dcde21e777a0
+        Key=71614af73814c3a8e6724d592ecfccdbace766dad5eb39b0b8313387e94d2964
+    elif [[ $OSVer == 4.3.5 ]]; then
+        IV=986032eecd861c37ca2a86b6496a3c0d
+        Key=b4e300c54a9dd2e648ead50794e9bf2205a489c310a1c70a9fae687368229468
+        ios4="-ios4"
+    elif [[ $OSVer == 4.3.3 ]]; then
+        IV=bb3fc29dd226fac56086790060d5c744
+        Key=c2ead1d3b228a05b665c91b4b1ab54b570a81dffaf06eaf1736767bcb86e50de
+        ios4="-ios433"
     fi
     
     Custom="Custom"
-    [[ $Jailbreak == 1 ]] && Custom="CustomJB"
-    if [[ $Jailbreak == 1 ]] && [[ ! -e resources/jailbreak/${JBFiles[0]} ]]; then
-        Log "Downloaading jailbreak files..."
-        cd tmp
-        SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/jailbreak/${JBFiles[0]} ${JBFiles[0]} $JBSHA1
-        cp ${JBFiles[0]} ../resources/jailbreak
-        cd ..
+    if [[ $Jailbreak == 1 ]]; then
+        if [[ $OSVer == 6.1.3 ]]; then
+            JBFiles=(Cydia6.tar p0sixspwn.tar)
+            JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
+        elif [[ $OSVer == 6.1.2 ]] || [[ $OSVer == 6.1 ]] ||
+            [[ $OSVer == 6.0.1 ]] || [[ $OSVer == 6.0 ]]; then
+            JBFiles=(Cydia6.tar evasi0n6-untether.tar)
+            JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
+        elif [[ $OSVer == 5.1.1 ]] || [[ $OSVer == 5.1 ]] ||
+            [[ $OSVer == 5.0.1 ]] || [[ $OSVer == 5.0 ]]; then
+            JBFiles=(Cydia5.tar unthredeh4il.tar)
+            JBSHA1=f5b5565640f7e31289919c303efe44741e28543a
+        fi
+        JBFiles+=(resources/jailbreak/fstab_rw.tar)
+        Custom="CustomJB"
+        if [[ ! -e resources/jailbreak/${JBFiles[0]} ]]; then
+            Log "Downloaading jailbreak files..."
+            cd tmp
+            SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/jailbreak/${JBFiles[0]} ${JBFiles[0]} $JBSHA1
+            cp ${JBFiles[0]} ../resources/jailbreak
+            cd ..
+        fi
+        for i in {0..1}; do
+            JBFiles[$i]=resources/jailbreak/${JBFiles[$i]}
+        done
     fi
     IPSWCustom="iPhone3,1_${OSVer}_${BuildVer}_${Custom}"
-    for i in {0..2}; do
-        JBFiles[$i]=resources/jailbreak/${JBFiles[$i]}
-    done
+    
+    if [ ! -e saved/blobs712.shsh ]; then
+        Log "Saving 7.1.2 blobs with tsschecker..."
+        $tsschecker -d $ProductType -i 7.1.2 -e $UniqueChipID -m resources/BuildManifest.plist -s
+        SHSH=$(ls ${UniqueChipID}_${ProductType}_7.1.2-11D257_*.shsh2)
+        [ ! $SHSH ] && Error "Saving $OSVer blobs failed. Please run the script again"
+        mkdir saved 2>/dev/null
+        cp $SHSH saved/blobs712.shsh
+        Log "Successfully saved 7.1.2 blobs."
+    else
+        cp saved/blobs712.shsh .
+        SHSH="blobs712.shsh"
+    fi
+    mkdir shsh
+    mv $SHSH shsh/${UniqueChipID}-${ProductType}-${OSVer}.shsh
     
     if [[ ! -e $IPSWCustom.ipsw ]]; then
         Echo "* By default, memory option is set to Y, you may select N later if you encounter problems"
@@ -357,27 +466,18 @@ function Downgrade {
         Log "Preparing custom IPSW with ch3rryflower..."
         sed -z -i "s|\n../bin|\n../$cherry/bin|g" $cherry/make_iBoot.sh
         $cherry/make_iBoot.sh $IPSW.ipsw -iv $IV -k $Key
-        ln -sf $cherry/FirmwareBundles FirmwareBundles
-        ln -sf $cherry/src src
+        cherrymac=resources/ch3rryflower/Tools/macos/UNTETHERED
+        cp -rf $cherrymac/FirmwareBundles FirmwareBundles
+        cp -rf $cherrymac/src src
         $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot ${JBFiles[@]}
     fi
     [ ! -e $IPSWCustom.ipsw ] && Error "Failed to find custom IPSW. Please run the script again" "You may try selecting N for memory option"
     IPSW=$IPSWCustom
     
-    Log "Saving 7.1.2 blobs with tsschecker..."
-    $tsschecker -d $ProductType -i 7.1.2 -e $UniqueChipID -m resources/BuildManifest.plist -s
-    SHSH=$(ls ${UniqueChipID}_${ProductType}_7.1.2-11D257_*.shsh2)
-    [ ! $SHSH ] && Error "Saving $OSVer blobs failed. Please run the script again"
-    Log "Successfully saved 7.1.2 blobs."
-    
     Log "Extracting IPSW..."
     unzip -q $IPSW.ipsw -d $IPSW/
-    
     Log "Proceeding to idevicerestore..."
-    mkdir shsh
-    mv $SHSH shsh/${UniqueChipID}-${ProductType}-${OSVer}.shsh
     $idevicerestore -e -w $IPSW.ipsw
-    
     Log "Restoring done!"
     Log "Downgrade script done!"
 }
@@ -437,6 +537,9 @@ function InstallDependencies {
         mkdir ../resources/libimobiledevice_$platform
         unzip libimobiledevice.zip -d ../resources/libimobiledevice_$platform
         chmod +x ../resources/libimobiledevice_$platform/*
+        Echo "* macOS device detected. For macOS, it is recommended to use cherryflowerJB instead as this script is mostly aimed for Linux users"
+        Echo "* If you still want to use this, you need to have Homebrew installed, and install libpng using 'brew install libpng'"
+        Echo "* There may be other dependencies needed but I haven't tested it"
     fi
     
     Log "Install script done! Please run the script again to proceed"

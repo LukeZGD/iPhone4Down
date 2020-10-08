@@ -1,21 +1,25 @@
 # iPhone4Down
 ### iPhone 4 downgrade script (uses ch3rryflower)
 
-- This downgrade script/tool supports **both Linux and macOS** 
-    - This script is mostly aimed for Linux users though, for macOS users you may also use [cherryflowerJB](https://dora2ios.web.app/CFJB/) instead
-- The downgrades have the option to jailbreak
-- You do NOT need blobs to use this
+- This downgrade script/tool supports **both Linux and macOS**
+    - This script is mostly aimed for Linux users though
+    - This script uses an older version of ch3rryflower by dora2iOS that has a Linux version compiled
+    - For macOS users you may use [cherryflowerJB](https://dora2ios.web.app/CFJB/) instead for more support
 - **This supports iPhone3,1 only**
-- 8GB iPhones may not work with any downgrades below iOS 6
+- The downgrades have the option to jailbreak
+- You do not need blobs to use this, the script will get the needed 7.1.2 blobs for you
+- 8GB iPhones may not work with downgrades below iOS 6
+- If you want to go back and restore to iOS 7.1.2, you need to disable the exploit
+    - From the menu, select "Disable/Enable exploit" > "Disable exploit" while device is in DFU mode
 
 ## Requirements:
 - **iPhone 4 (iPhone3,1)**
-- IPSW of the version you want to downgrade to (6.1.3, 5.1.1-9B208)
+- IPSW of the version you want to downgrade to (supported: iOS 5.0 to 6.1.3)
 - IPSW of iOS 7.1.2
 - A **64-bit Linux install/live USB** or a supported **macOS** version
     - See supported OS versions and Linux distros below
     - A Linux live USB can be easily created with tools like [balenaEtcher](https://www.balena.io/etcher/) or [Rufus](https://rufus.ie/)
-- For kDFU, OpenSSH needs to be installed first (not required for DFU/pwnDFU)
+- For entering kDFU, OpenSSH needs to be installed first (this is not required for DFU/pwnDFU)
 
 ## How to use:
 1. [Download iPhone4Down here](https://github.com/LukeZGD/iPhone4Down/archive/master.zip) and extract the zip archive
@@ -32,13 +36,12 @@
 - Ubuntu 20.10
 - [Arch Linux](https://www.archlinux.org/) and Arch-based distros like [Manjaro](https://manjaro.org/)
 - [Fedora 32 to 33](https://getfedora.org/)
-- macOS 10.13 to 10.15
+- macOS 10.13 to 10.15 (untested)
 
 ## Tools and other stuff used by this script:
-- [ch3rryflower](https://github.com/dora2-iOS/ch3rryflower/tree/316d2cdc5351c918e9db9650247b91632af3f11f)
+- [ch3rryflower by dora2iOS](https://github.com/dora2-iOS/ch3rryflower/tree/316d2cdc5351c918e9db9650247b91632af3f11f)
 - cURL
 - bspatch
-- [ipwndfu](https://github.com/aXi0mX/ipwndfu)
 - [irecovery](https://github.com/LukeZGD/libirecovery)
 - [libimobiledevice](https://github.com/libimobiledevice/libimobiledevice)
 - [imobiledevice-net](https://github.com/libimobiledevice-win32/imobiledevice-net) (macOS)
