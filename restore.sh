@@ -341,9 +341,11 @@ function Remove4 {
 }
 
 function Downgrade {
+    [[ $Jailbreak == 1 ]] && Custom="CustomJB" || Custom="Custom"
     IPSW="iPhone3,1_${OSVer}_${BuildVer}_Restore"
+    IPSWCustom="iPhone3,1_${OSVer}_${BuildVer}_${Custom}"
     IPSW7="iPhone3,1_7.1.2_11D257_Restore"
-    [[ ! -e $IPSW.ipsw ]] && Error "iOS $OSVer-$BuildVer IPSW cannot be found."
+    [[ ! -e $IPSWCustom.ipsw ]] && [[ ! -e $IPSW.ipsw ]] && Error "iOS $OSVer-$BuildVer IPSW cannot be found."
     [[ ! -e $IPSW7.ipsw ]] && Error "iOS 7.1.2 IPSW cannot be found."
     
     [ ! $DFUManual ] && kDFU
@@ -409,7 +411,6 @@ function Downgrade {
         ios4="-ios433"
     fi
     
-    Custom="Custom"
     if [[ $Jailbreak == 1 ]]; then
         if [[ $OSVer == 6.1.3 ]]; then
             JBFiles=(Cydia6.tar p0sixspwn.tar)
@@ -424,7 +425,6 @@ function Downgrade {
             JBSHA1=f5b5565640f7e31289919c303efe44741e28543a
         fi
         JBFiles+=(resources/jailbreak/fstab_rw.tar)
-        Custom="CustomJB"
         if [[ ! -e resources/jailbreak/${JBFiles[0]} ]]; then
             Log "Downloaading jailbreak files..."
             cd tmp
@@ -436,7 +436,6 @@ function Downgrade {
             JBFiles[$i]=resources/jailbreak/${JBFiles[$i]}
         done
     fi
-    IPSWCustom="iPhone3,1_${OSVer}_${BuildVer}_${Custom}"
     
     if [ ! -e saved/shsh/blobs712_${UniqueChipID}.shsh ]; then
         Log "Saving 7.1.2 blobs with tsschecker..."
