@@ -12,9 +12,14 @@
 - If you want to go back and restore to iOS 7.1.2, you need to disable the exploit
     - From the menu, select "Disable/Enable exploit" > "Disable exploit" while device is in DFU mode
 
+## Supported iOS versions
+- This script supports downgrading to **any version from iOS 5.0 to 6.1.3**
+- I can't verify if iOS 4.3.x works or not, let me know if it does work
+- I don't think any iOS 7.x version works (gets stuck in recovery mode)
+    
 ## Requirements:
 - **iPhone 4 (iPhone3,1)**
-- IPSW of the version you want to downgrade to (supported: iOS 5.0 to 6.1.3)
+- IPSW of the version you want to downgrade to
 - IPSW of iOS 7.1.2
 - A **64-bit Linux install/live USB** or a supported **macOS** version
     - See supported OS versions and Linux distros below

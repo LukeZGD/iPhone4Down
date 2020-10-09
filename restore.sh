@@ -177,29 +177,24 @@ function Main {
 }
 
 function SelectVersion {
-    [[ $Mode != 'Downgrade' ]] && Action
-    Selection=("6.1.3" "5.1.1 (9B208)" "More versions (untested)" "(Any other key to exit)")
+    Selection=("6.1.3" "5.1.1 (9B208)" "More versions (5.0-6.1.2)" "4.3.x (untested)" "7.x (not working)")
     Selection2=("6.1.2" "6.1" "6.0.1" "6.0" "5.1.1 (9B206)" "5.1" "5.0.1" "5.0")
+    Selection3=("7.1.1" "7.1" "7.0.6" "7.0.4" "7.0.3" "7.0.2" "7.0")
+    [[ $Mode != 'Downgrade' ]] && Action
     Input "Select iOS version:"
     select opt in "${Selection[@]}"; do
         case $opt in
             "6.1.3" ) OSVer='6.1.3'; BuildVer='10B329'; break;;
             "5.1.1 (9B208)" ) OSVer='5.1.1'; BuildVer='9B208'; break;;
-            "4.3.5" ) OSVer='4.3.5'; BuildVer='8L1'; break;;
-            "More versions (untested)" ) OSVer='More'; break;;
+            "More versions (5.0-6.1.2)" ) OSVer='More'; break;;
+            "4.3.x (untested)" ) OSVer='4.3.x'; break;;
+            "7.x (not working)" ) OSVer='7.x'; break;;
             *) exit;;
         esac
     done
     if [[ $OSVer == 'More' ]]; then
         select opt in "${Selection2[@]}"; do
             case $opt in
-                "7.1.1" ) OSVer='7.1.1'; BuildVer='11D201'; break;;
-                "7.1" ) OSVer='7.1'; BuildVer='11D169'; break;;
-                "7.0.6" ) OSVer='7.0.6'; BuildVer='11B651'; break;;
-                "7.0.4" ) OSVer='7.0.4'; BuildVer='11B554a'; break;;
-                "7.0.3" ) OSVer='7.0.3'; BuildVer='11B511'; break;;
-                "7.0.2" ) OSVer='7.0.2'; BuildVer='11A501'; break;;
-                "7.0" ) OSVer='7.0'; BuildVer='11A465'; break;;
                 "6.1.2" ) OSVer='6.1.2'; BuildVer='10B146'; break;;
                 "6.1" ) OSVer='6.1'; BuildVer='10B144'; break;;
                 "6.0.1" ) OSVer='6.0.1'; BuildVer='10A523'; break;;
@@ -208,7 +203,29 @@ function SelectVersion {
                 "5.1" ) OSVer='5.1'; BuildVer='9B176'; break;;
                 "5.0.1" ) OSVer='5.0.1'; BuildVer='9A405'; break;;
                 "5.0" ) OSVer='5.0'; BuildVer='9A334'; break;;
+                *) exit;;
+            esac
+        done
+    elif [[ $OSVer == '4.3.x' ]]; then
+        Echo "* I can't verify if iOS 4.3.x works or not, let me know if it does work"
+        select opt in "4.3.5" "4.3.3"; do
+            case $opt in
+                "4.3.5" ) OSVer='4.3.5'; BuildVer='8L1'; break;;
                 "4.3.3" ) OSVer='4.3.3'; BuildVer='8J2'; break;;
+                *) exit;;
+            esac
+        done
+    elif [[ $OSVer == '7.x' ]]; then
+        Echo "* I don't think any iOS 7.x version works (gets stuck in recovery mode)"
+        select opt in "${Selection3[@]}"; do
+            case $opt in
+                "7.1.1" ) OSVer='7.1.1'; BuildVer='11D201'; break;;
+                "7.1" ) OSVer='7.1'; BuildVer='11D169'; break;;
+                "7.0.6" ) OSVer='7.0.6'; BuildVer='11B651'; break;;
+                "7.0.4" ) OSVer='7.0.4'; BuildVer='11B554a'; break;;
+                "7.0.3" ) OSVer='7.0.3'; BuildVer='11B511'; break;;
+                "7.0.2" ) OSVer='7.0.2'; BuildVer='11A501'; break;;
+                "7.0" ) OSVer='7.0'; BuildVer='11A465'; break;;
                 *) exit;;
             esac
         done
@@ -218,7 +235,7 @@ function SelectVersion {
 
 function Action {
     Log "Option: $Mode"
-    if [[ $Mode == 'Downgrade' ]] && [[ $OSVer != 7* ]]; then
+    if [[ $Mode == 'Downgrade' ]] && [[ $OSVer != 7.1* ]]; then
         read -p "$(Input 'Jailbreak the selected iOS version? (y/N): ')" Jailbreak
         [[ $Jailbreak == y ]] || [[ $Jailbreak == Y ]] && Jailbreak=1
     fi
@@ -412,7 +429,11 @@ function Downgrade {
     fi
     
     if [[ $Jailbreak == 1 ]]; then
-        if [[ $OSVer == 6.1.3 ]]; then
+        if [[ $OSVer == 7.0.6 ]] || [[ $OSVer == 7.0.4 ]] || [[ $OSVer == 7.0.3 ]] || 
+           [[ $OSVer == 7.0.2 ]] || [[ $OSVer == 7.0 ]]; then
+            JBFiles=(Cydia6.tar evasi0n7-untether.tar)
+            JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
+        elif [[ $OSVer == 6.1.3 ]]; then
             JBFiles=(Cydia6.tar p0sixspwn.tar)
             JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
         elif [[ $OSVer == 6.1.2 ]] || [[ $OSVer == 6.1 ]] ||
@@ -452,6 +473,7 @@ function Downgrade {
     mkdir shsh
     mv $SHSH shsh/${UniqueChipID}-${ProductType}-${OSVer}.shsh
     
+    [[ $OSVer == 4.3* ]] && IPSWCustom=$IPSWCustom-$UniqueChipID
     if [[ ! -e $IPSWCustom.ipsw ]]; then
         Echo "* By default, memory option is set to Y, you may select N later if you encounter problems"
         Echo "* If it doesn't work with both, you might not have enough RAM or tmp storage"
@@ -459,11 +481,12 @@ function Downgrade {
         [[ $JBMemory != n ]] && [[ $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW with ch3rryflower..."
         sed -z -i "s|\n../bin|\n../$cherry/bin|g" $cherry/make_iBoot.sh
-        $cherry/make_iBoot.sh $IPSW.ipsw -iv $IV -k $Key
+        $cherry/make_iBoot.sh $IPSW.ipsw -iv $IV -k $Key $ios4
         cherrymac=resources/ch3rryflower/Tools/macos/UNTETHERED
         cp -rf $cherrymac/FirmwareBundles FirmwareBundles
         cp -rf $cherrymac/src src
         $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot ${JBFiles[@]}
+        [[ $OSVer == 4.3* ]] && iOS4Fix
     fi
     [ ! -e $IPSWCustom.ipsw ] && Error "Failed to find custom IPSW. Please run the script again" "You may try selecting N for memory option"
     IPSW=$IPSWCustom
@@ -476,6 +499,34 @@ function Downgrade {
     Log "Downgrade script done!"
 }
 
+function iOS4Fix {
+    Log "iOS 4 Fix" # From ios4fix
+    cp shsh/$UniqueChipID-iPhone3,1-$OSVer.shsh tmp/apticket.plist
+    zip -d $IPSWCustom.ipsw Firmware/all_flash/all_flash.n90ap.production/manifest
+    cd src/n90ap/Firmware/all_flash/all_flash.n90ap.production
+    unzip -j ../../../../../$IPSW.ipsw Firmware/all_flash/all_flash*/applelogo*
+    mv -v applelogo-640x960.s5l8930x.img3 applelogo4-640x960.s5l8930x.img3
+    echo "0000010: 34" | xxd -r - applelogo4-640x960.s5l8930x.img3
+    echo "0000020: 34" | xxd -r - applelogo4-640x960.s5l8930x.img3
+    if [[ $platform == macos ]]; then
+        plutil -extract 'APTicket' xml1 ../../../../../shsh/$UniqueChipID-iPhone3,1-$OSVer.plist -o 'apticket.plist'
+    else
+        echo '<?xml version="1.0" encoding="UTF-8"?>' > apticket.plist
+        echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> apticket.plist
+        printf '<plist version="1.0">\n<data>' >> apticket.plist
+        xmlstarlet sel -t -m "/plist/dict/key[.='APTicket']" -v "following-sibling::data[1]" ../../../../../tmp/apticket.plist >> apticket.plist
+        echo -e '</data>\n</plist>' >> apticket.plist
+        sed -i -e 's/[ \t]*//' apticket.plist
+    fi
+    cat apticket.plist | sed -ne '/<data>/,/<\/data>/p' | sed -e "s/<data>//" | sed "s/<\/data>//" | awk '{printf "%s",$0}' | base64 --decode > apticket.der
+    ../../../../../$cherry/bin/xpwntool apticket.der applelogoT-640x960.s5l8930x.img3 -t scab_template.img3
+    cd ../../..
+    zip -r0 ../../$IPSWCustom.ipsw Firmware/all_flash/all_flash.n90ap.production/manifest
+    zip -r0 ../../$IPSWCustom.ipsw Firmware/all_flash/all_flash.n90ap.production/applelogo4-640x960.s5l8930x.img3
+    zip -r0 ../../$IPSWCustom.ipsw Firmware/all_flash/all_flash.n90ap.production/applelogoT-640x960.s5l8930x.img3
+    cd ../..
+}
+
 function InstallDependencies {
     mkdir tmp 2>/dev/null
     cd tmp
@@ -483,13 +534,13 @@ function InstallDependencies {
     Log "Installing dependencies..."
     if [[ $ID == "arch" ]] || [[ $ID_LIKE == "arch" ]]; then
         # Arch
-        sudo pacman -Sy --noconfirm --needed bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim
+        sudo pacman -Sy --noconfirm --needed bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
         
     elif [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]]; then
         # Ubuntu
         sudo add-apt-repository universe
         sudo apt update
-        sudo apt install -y autoconf automake bsdiff build-essential checkinstall curl git libglib2.0-dev libimobiledevice-utils libreadline-dev libtool-bin libusb-1.0-0-dev libusbmuxd-tools openssh-client usbmuxd usbutils xxd
+        sudo apt install -y autoconf automake bsdiff build-essential checkinstall curl git libglib2.0-dev libimobiledevice-utils libreadline-dev libtool-bin libusb-1.0-0-dev libusbmuxd-tools openssh-client usbmuxd usbutils xmlstarlet xxd
         SavePkg
         if [[ $UBUNTU_CODENAME == "bionic" ]]; then
             sudo dpkg -i libzip5.deb
@@ -506,7 +557,7 @@ function InstallDependencies {
         
     elif [[ $ID == "fedora" ]]; then
         # Fedora
-        sudo dnf install -y automake binutils bsdiff git libimobiledevice-utils libtool libusb-devel libusbmuxd-utils make libzip perl-Digest-SHA readline-devel vim-common
+        sudo dnf install -y automake binutils bsdiff git libimobiledevice-utils libtool libusb-devel libusbmuxd-utils make libzip perl-Digest-SHA readline-devel vim-common xmlstarlet
         SavePkg
         if (( $VERSION_ID <= 32 )); then
             ln -sf /usr/lib64/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
