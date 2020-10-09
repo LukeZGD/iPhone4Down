@@ -19,7 +19,6 @@
 - A **64-bit Linux install/live USB** or a supported **macOS** version
     - See supported OS versions and Linux distros below
     - A Linux live USB can be easily created with tools like [balenaEtcher](https://www.balena.io/etcher/) or [Rufus](https://rufus.ie/)
-- For entering kDFU, OpenSSH needs to be installed first (this is not required for DFU/pwnDFU)
 
 ## How to use:
 1. [Download iPhone4Down here](https://github.com/LukeZGD/iPhone4Down/archive/master.zip) and extract the zip archive

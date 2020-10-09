@@ -93,6 +93,8 @@ function Main {
         cd ..
     fi
     
+    Echo "* Platform: $platform"
+    echo
     Log "Finding device in normal mode..."
     ideviceinfo2=$($ideviceinfo -s)
     if [[ $? != 0 ]]; then
@@ -134,15 +136,16 @@ function Main {
     
     Clean
     mkdir tmp
-    Echo "* Platform: $platform"
-    echo
     
     if [[ $DFUDevice != 1 ]] && [[ $RecoveryDevice != 1 ]] && [[ $ProductType == iPhone3,1 ]]; then
         Log "Device in normal mode detected."
-        Echo "* Enter Y if your device is jailbroken and have OpenSSH installed (kloader will be used)"
-        Echo "* Enter N if your device is not jailbroken (send device to recovery/DFU)"
-        read -p "$(Input 'Is this device jailbroken and have OpenSSH installed? (Y/n): ')" Jailbroken
-        [[ $Jailbroken == n ]] || [[ $Jailbroken == N ]] && Recovery
+        Echo "* The device needs to be in recovery/DFU mode before proceeding."
+        read -p "$(Input 'Send device to recovery mode? (y/N): ')" Jailbroken
+        if [[ $Jailbroken == y ]] || [[ $Jailbroken == Y ]]; then
+            Recovery
+        else
+            exit
+        fi
     elif [[ $RecoveryDevice == 1 ]]; then
         Recovery
     fi
@@ -157,8 +160,7 @@ function Main {
     if [[ $1 ]] && [[ $1 != 'NoColor' ]]; then
         Mode="$1"
     else
-        Selection=("Downgrade device")
-        [[ $pwnDFUDevice != 1 ]] && Selection+=("Just put device in kDFU mode")
+        [[ $pwnDFUDevice == 1 ]] && Selection=("Downgrade device") || Selection+=("Just put device in kDFU mode")
         Selection+=("Disable/Enable exploit" "(Re-)Install Dependencies" "(Any other key to exit)")
         Echo "*** Main Menu ***"
         Input "Select an option:"
@@ -176,14 +178,9 @@ function Main {
 }
 
 function SelectVersion {
-    if [ $ProductType == iPhone3,1 ]; then
-        Selection=("6.1.3" "5.1.1 (9B208)" "More versions (untested)")
-        Selection2=("6.1.2" "6.1" "6.0.1" "6.0" "5.1.1 (9B206)" "5.1" "5.0.1" "5.0")
-    else
-        Selection=()
-    fi
     [[ $Mode != 'Downgrade' ]] && Action
-    Selection+=("(Any other key to exit)")
+    Selection=("6.1.3" "5.1.1 (9B208)" "More versions (untested)" "(Any other key to exit)")
+    Selection2=("6.1.2" "6.1" "6.0.1" "6.0" "5.1.1 (9B206)" "5.1" "5.0.1" "5.0")
     Input "Select iOS version:"
     select opt in "${Selection[@]}"; do
         case $opt in
@@ -313,7 +310,6 @@ function EnterPwnDFU {
 }
 
 function Remove4 {
-    [[ $DFUDevice != 1 ]] && Error "Your device must be in DFU mode to select this option."
     Input "Select option:"
     select opt in "Disable exploit" "Enable exploit" "(Any other key to exit)"; do
         case $opt in

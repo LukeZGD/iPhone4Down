@@ -1,10 +1,11 @@
 *.ipsw
 *.shsh
 *.shsh2
-FirmwareBundles
+FirmwareBundles/
 iBoot
 iP*
-src
+saved/
+src/
 resources/ch3rryflower/
 resources/ipwndfu/
 resources/jailbreak/Cydia*
