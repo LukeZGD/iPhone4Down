@@ -443,13 +443,13 @@ function Downgrade {
     fi
     IPSWCustom="iPhone3,1_${OSVer}_${BuildVer}_${Custom}"
     
-    if [ ! -e saved/blobs712_${UniqueChipID}.shsh ]; then
+    if [ ! -e saved/shsh/blobs712_${UniqueChipID}.shsh ]; then
         Log "Saving 7.1.2 blobs with tsschecker..."
         $tsschecker -d $ProductType -i 7.1.2 -e $UniqueChipID -m resources/BuildManifest.plist -s
         SHSH=$(ls ${UniqueChipID}_${ProductType}_7.1.2-11D257_*.shsh2)
         [ ! $SHSH ] && Error "Saving $OSVer blobs failed. Please run the script again"
         mkdir saved/shsh 2>/dev/null
-        cp $SHSH saved/blobs712_${UniqueChipID}.shsh
+        cp $SHSH saved/shsh/blobs712_${UniqueChipID}.shsh
         Log "Successfully saved 7.1.2 blobs."
     else
         cp saved/shsh/blobs712_${UniqueChipID}.shsh .
