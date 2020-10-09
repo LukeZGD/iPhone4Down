@@ -152,8 +152,7 @@ function Main {
     
     if [[ $DFUDevice == 1 ]] && [[ $pwnDFUDevice != 1 ]]; then
         Log "Device in DFU mode detected."
-        read -p "$(Input 'Is this device in kDFU/pwnDFU mode? (y/N): ')" DFUManual
-        [[ $DFUManual == y ]] || [[ $DFUManual == Y ]] && pwnDFUDevice=1 || EnterPwnDFU
+        EnterPwnDFU
     fi
     [[ $pwnDFUDevice == 1 ]] && DFUManual=1
     
