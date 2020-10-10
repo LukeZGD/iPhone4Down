@@ -362,8 +362,10 @@ function Downgrade {
     IPSW="iPhone3,1_${OSVer}_${BuildVer}_Restore"
     IPSWCustom="iPhone3,1_${OSVer}_${BuildVer}_${Custom}"
     IPSW7="iPhone3,1_7.1.2_11D257_Restore"
-    [[ ! -e $IPSWCustom.ipsw ]] && [[ ! -e $IPSW.ipsw ]] && Error "iOS $OSVer-$BuildVer IPSW cannot be found."
-    [[ ! -e $IPSW7.ipsw ]] && Error "iOS 7.1.2 IPSW cannot be found."
+    if [[ ! -e $IPSWCustom.ipsw ]]; then
+        [[ ! -e $IPSW.ipsw ]] && Error "iOS $OSVer-$BuildVer IPSW cannot be found."
+        [[ ! -e $IPSW7.ipsw ]] && Error "iOS 7.1.2 IPSW cannot be found."
+    fi
     
     [ ! $DFUManual ] && kDFU
     
