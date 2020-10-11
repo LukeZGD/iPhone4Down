@@ -177,8 +177,8 @@ function Main {
 }
 
 function SelectVersion {
-    Selection=("6.1.3" "5.1.1 (9B208)" "More versions (5.0-6.1.2)" "4.3.x (untested)" "7.x (not working)")
-    Selection2=("6.1.2" "6.1" "6.0.1" "6.0" "5.1.1 (9B206)" "5.1" "5.0.1" "5.0")
+    Selection=("6.1.3" "5.1.1 (9B208)" "5.1.1 (9B206)" "More versions (5.0-6.1.2)" "4.3.x (untested)" "7.x (not working)")
+    Selection2=("6.1.2" "6.1" "6.0.1" "6.0" "5.1" "5.0.1" "5.0")
     Selection3=("7.1.1" "7.1" "7.0.6" "7.0.4" "7.0.3" "7.0.2" "7.0")
     [[ $Mode != 'Downgrade' ]] && Action
     Input "Select iOS version:"
@@ -186,6 +186,7 @@ function SelectVersion {
         case $opt in
             "6.1.3" ) OSVer='6.1.3'; BuildVer='10B329'; break;;
             "5.1.1 (9B208)" ) OSVer='5.1.1'; BuildVer='9B208'; break;;
+            "5.1.1 (9B206)" ) OSVer='5.1.1'; BuildVer='9B206'; break;;
             "More versions (5.0-6.1.2)" ) OSVer='More'; break;;
             "4.3.x (untested)" ) OSVer='4.3.x'; break;;
             "7.x (not working)" ) OSVer='7.x'; break;;
@@ -199,7 +200,6 @@ function SelectVersion {
                 "6.1" ) OSVer='6.1'; BuildVer='10B144'; break;;
                 "6.0.1" ) OSVer='6.0.1'; BuildVer='10A523'; break;;
                 "6.0" ) OSVer='6.0'; BuildVer='10A403'; break;;
-                "5.1.1 (9B206)" ) OSVer='5.1.1'; BuildVer='9B206'; break;;
                 "5.1" ) OSVer='5.1'; BuildVer='9B176'; break;;
                 "5.0.1" ) OSVer='5.0.1'; BuildVer='9A405'; break;;
                 "5.0" ) OSVer='5.0'; BuildVer='9A334'; break;;
