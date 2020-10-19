@@ -45,15 +45,22 @@ function Main {
         ideviceenterrecovery="ideviceenterrecovery"
         ideviceinfo="ideviceinfo"
         idevicerestore="sudo LD_LIBRARY_PATH=resources/lib resources/tools/idevicerestore_linux"
-        [[ $UBUNTU_CODENAME == "bionic" ]] && idevicerestore="${idevicerestore}_bionic"
         iproxy="iproxy"
         irecoverychk="resources/libirecovery/bin/irecovery"
         irecovery="sudo LD_LIBRARY_PATH=resources/lib $irecoverychk"
         tsschecker="env LD_LIBRARY_PATH=resources/lib resources/tools/tsschecker_linux"
         cherry="resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
         pwnedDFU="sudo $cherry/pwnedDFU"
+        if [[ $UBUNTU_CODENAME == "bionic" ]]; then
+            idevicerestore="${idevicerestore}_bionic"
+        elif [[ $UBUNTU_CODENAME == "xenial" ]]; then
+            idevicerestore="${idevicerestore}_xenial"
+            partialzip="${partialzip}_xenial"
+            tsschecker="${tsschecker}_xenial"
+        fi
 
     elif [[ $OSTYPE == "darwin"* ]]; then
+        macver=${1:-$(sw_vers -productVersion)}
         platform="macos"
         bspatch="resources/tools/bspatch_$platform"
         ideviceenterrecovery="resources/libimobiledevice_$platform/ideviceenterrecovery"
@@ -93,7 +100,8 @@ function Main {
         cd ..
     fi
     
-    Echo "* Platform: $platform"
+    Echo "* Platform: $platform $macver"
+    Echo "* UniqueChipID (ECID): $UniqueChipID"
     echo
     Log "Finding device in normal mode..."
     ideviceinfo2=$($ideviceinfo -s)
@@ -538,7 +546,8 @@ function InstallDependencies {
         # Arch
         sudo pacman -Sy --noconfirm --needed bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
         
-    elif [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]]; then
+    elif [[ $UBUNTU_CODENAME == "xenial" ]] || [[ $UBUNTU_CODENAME == "bionic" ]] ||
+         [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]]; then
         # Ubuntu
         sudo add-apt-repository universe
         sudo apt update
@@ -548,6 +557,10 @@ function InstallDependencies {
             sudo dpkg -i libzip5.deb
             SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/tools_linux_bionic.zip tools_linux_bionic.zip 959abbafacfdaddf87dd07683127da1dab6c835f
             unzip tools_linux_bionic.zip -d ../resources/tools
+        elif [[ $UBUNTU_CODENAME == "xenial" ]]; then
+            sudo apt install -y libzip4 python libpng12
+            SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/tools_linux_xenial.zip tools_linux_xenial.zip b74861fd87511a92e36e27bf2ec3e1e83b6e8200
+            unzip tools_linux_xenial.zip -d ../resources/tools
         else
             sudo apt install -y libzip5
         fi
