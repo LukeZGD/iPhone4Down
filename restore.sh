@@ -72,7 +72,7 @@ function Main {
     [[ ! $platform ]] && Error "Platform unknown/not supported."
     chmod +x resources/tools/*
     [ $? == 1 ] && Log "An error occurred in chmod. This might cause problems..."
-    [[ ! $(ping -c1 google.com 2>/dev/null) ]] && Error "Please check your Internet connection before proceeding."
+    [[ ! $(ping -c1 8.8.8.8 2>/dev/null) ]] && Error "Please check your Internet connection before proceeding."
     [[ $(uname -m) != 'x86_64' ]] && Error "Only x86_64 distributions are supported. Use a 64-bit distro and try again"
     
     if [[ $1 == Install ]] || [ ! $(which $irecoverychk) ] || [ ! $(which $ideviceinfo) ]; then
