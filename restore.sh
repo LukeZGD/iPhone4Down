@@ -504,7 +504,7 @@ function Downgrade {
     Log "Extracting IPSW..."
     unzip -q $IPSW.ipsw -d $IPSW/
     Log "Proceeding to idevicerestore..."
-    $idevicerestore -e -w $IPSW.ipsw
+    $idevicerestore -y -e -w $IPSW.ipsw
     Log "Restoring done!"
     Log "Downgrade script done!"
 }
