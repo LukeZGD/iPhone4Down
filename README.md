@@ -1,21 +1,22 @@
 # iPhone4Down
-### iPhone 4 downgrade script (uses ch3rryflower)
+### iPhone 4 downgrade script for Linux (uses ch3rryflower)
 
-- This downgrade script/tool supports **both Linux and macOS**
+- This script uses an older Linux compiled version of ch3rryflower and automates the downgrade process for the iPhone 4
+- This downgrade script/tool actually supports **both Linux and macOS**
     - This script is mostly aimed for Linux users though
-    - This script uses an older version of ch3rryflower by dora2iOS that has a Linux version compiled
     - For macOS users you may use [cherryflowerJB](https://dora2ios.web.app/CFJB/) instead for more support
 - **This supports iPhone3,1 only**
 - The downgrades have the option to jailbreak
-- You do not need blobs to use this, the script will get the needed 7.1.2 blobs for you
-- 8GB iPhones may not work with downgrades below iOS 6
+- **You do NOT need blobs to use this**, the script will get the needed 7.1.2 blobs for you
+- 8GB models may not work with downgrades below iOS 6
+- Newer models may not work with downgrades below iOS 5
 - If you want to go back and restore to iOS 7.1.2, you need to disable the exploit
     - From the menu, select "Disable/Enable exploit" > "Disable exploit" while device is in DFU mode
 
 ## Supported iOS versions
 - This script supports downgrading to **any version from iOS 5.0 to 6.1.3**
-- I can't verify if iOS 4.3.x works or not, let me know if it does work
-- I don't think any iOS 7.x version works (gets stuck in recovery mode)
+- I can't verify if restoring to iOS 4.3.x works or not, let me know if it does work
+- I don't think restoring to any iOS 7.x version works (gets stuck in recovery mode)
     
 ## Requirements:
 - **iPhone 4 (iPhone3,1)**
