@@ -38,6 +38,7 @@ function Main {
     Echo "* This script uses ch3rryflower by dora2iOS"
     echo
     
+    partialzip="resources/tools/partialzip_$platform"
     if [[ $OSTYPE == "linux-gnu" ]]; then
         . /etc/os-release 2>/dev/null
         platform="linux"
@@ -73,7 +74,6 @@ function Main {
         cherry="resources/ch3rryflower/Tools/macos/UNTETHERED"
         pwnedDFU="$cherry/pwnedDFU"
     fi
-    partialzip="resources/tools/partialzip_$platform"
     
     [[ ! -d resources ]] && Error "resources folder cannot be found. Replace resources folder and try again" "If resources folder is present try removing spaces from path/folder name"
     [[ ! $platform ]] && Error "Platform unknown/not supported."
