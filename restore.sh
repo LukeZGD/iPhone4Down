@@ -38,7 +38,6 @@ function Main {
     Echo "* This script uses ch3rryflower by dora2iOS"
     echo
     
-    partialzip="resources/tools/partialzip_$platform"
     if [[ $OSTYPE == "linux-gnu" ]]; then
         . /etc/os-release 2>/dev/null
         platform="linux"
@@ -49,6 +48,7 @@ function Main {
         iproxy="iproxy"
         irecoverychk="resources/libirecovery/bin/irecovery"
         irecovery="sudo LD_LIBRARY_PATH=resources/lib $irecoverychk"
+        partialzip="resources/tools/partialzip_linux"
         tsschecker="env LD_LIBRARY_PATH=resources/lib resources/tools/tsschecker_linux"
         cherry="resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
         pwnedDFU="sudo $cherry/pwnedDFU"
@@ -70,6 +70,7 @@ function Main {
         iproxy="resources/libimobiledevice_$platform/iproxy"
         irecovery="resources/libimobiledevice_$platform/irecovery"
         irecoverychk=$irecovery
+        partialzip="resources/tools/partialzip_$platform"
         tsschecker="resources/tools/tsschecker_$platform"
         cherry="resources/ch3rryflower/Tools/macos/UNTETHERED"
         pwnedDFU="$cherry/pwnedDFU"
