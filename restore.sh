@@ -217,10 +217,11 @@ function SelectVersion {
         done
     elif [[ $OSVer == '4.3.x' ]]; then
         Echo "* I can't verify if iOS 4.3.x works or not, let me know if it does work"
-        select opt in "4.3.5" "4.3.3"; do
+        select opt in "4.3.5" "4.3.3" "4.3"; do
             case $opt in
                 "4.3.5" ) OSVer='4.3.5'; BuildVer='8L1'; break;;
                 "4.3.3" ) OSVer='4.3.3'; BuildVer='8J2'; break;;
+                "4.3" ) OSVer='4.3'; BuildVer='8F190'; break;;
                 *) exit;;
             esac
         done
@@ -437,6 +438,10 @@ function Downgrade {
         IV=bb3fc29dd226fac56086790060d5c744
         Key=c2ead1d3b228a05b665c91b4b1ab54b570a81dffaf06eaf1736767bcb86e50de
         ios4="-ios433"
+    elif [[ $OSVer == 4.3 ]]; then
+        IV=9f11c07bde79bdac4abb3f9707c4b13c
+        Key=0958d70e1a292483d4e32ed1e911d2b16b6260856be67d00a33b6a1801711d32
+        ios4="-ios433"
     fi
     
     if [[ $Jailbreak == 1 ]]; then
@@ -452,7 +457,7 @@ function Downgrade {
             JBFiles=(Cydia6.tar evasi0n6-untether.tar)
             JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
         elif [[ $OSVer == 5.1.1 ]] || [[ $OSVer == 5.1 ]] ||
-            [[ $OSVer == 5.0.1 ]] || [[ $OSVer == 5.0 ]]; then
+            [[ $OSVer == 5.0.1 ]] || [[ $OSVer == 5.0 ]] || [[ $OSVer == 4.3* ]]; then
             JBFiles=(Cydia5.tar unthredeh4il.tar)
             JBSHA1=f5b5565640f7e31289919c303efe44741e28543a
         fi
