@@ -351,7 +351,7 @@ function Remove4 {
         cp iBSS saved/iBSS_8L1
         mv iBSS tmp
     else
-        mv saved/iBSS_8L1 tmp/iBSS
+        cp saved/iBSS_8L1 tmp/iBSS
     fi
     Log "Patching iBSS..."
     $bspatch tmp/iBSS tmp/pwnediBSS resources/patches/iBSS.n90ap.8L1.patch
@@ -445,19 +445,16 @@ function Downgrade {
     fi
     
     if [[ $Jailbreak == 1 ]]; then
-        if [[ $OSVer == 7.0.6 ]] || [[ $OSVer == 7.0.4 ]] || [[ $OSVer == 7.0.3 ]] || 
-           [[ $OSVer == 7.0.2 ]] || [[ $OSVer == 7.0 ]]; then
+        if [[ $OSVer == 7.* ]]; then
             JBFiles=(Cydia6.tar evasi0n7-untether.tar)
             JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
         elif [[ $OSVer == 6.1.3 ]]; then
             JBFiles=(Cydia6.tar p0sixspwn.tar)
             JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
-        elif [[ $OSVer == 6.1.2 ]] || [[ $OSVer == 6.1 ]] ||
-            [[ $OSVer == 6.0.1 ]] || [[ $OSVer == 6.0 ]]; then
+        elif [[ $OSVer == 6.* ]]; then
             JBFiles=(Cydia6.tar evasi0n6-untether.tar)
             JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
-        elif [[ $OSVer == 5.1.1 ]] || [[ $OSVer == 5.1 ]] ||
-            [[ $OSVer == 5.0.1 ]] || [[ $OSVer == 5.0 ]] || [[ $OSVer == 4.3* ]]; then
+        elif [[ $OSVer == 5.* ]] || [[ $OSVer == 4.3* ]]; then
             JBFiles=(Cydia5.tar unthredeh4il.tar)
             JBSHA1=f5b5565640f7e31289919c303efe44741e28543a
         fi
