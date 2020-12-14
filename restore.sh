@@ -547,7 +547,14 @@ function InstallDependencies {
     Log "Installing dependencies..."
     if [[ $ID == "arch" ]] || [[ $ID_LIKE == "arch" ]]; then
         # Arch
-        sudo pacman -Sy --noconfirm --needed bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
+        sudo pacman -Sy --noconfirm --needed base-devel bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
+    
+    elif [[ $ID == "opensuse-tumbleweed" ]]; then
+        #openSUSE Tumbleweed
+        sudo zypper -n install automake bsdiff gcc git-core imobiledevice-tools libimobiledevice libusb-1_0-devel libusbmuxd-tools libtool make readline-devel vim xmlstarlet
+        ln -sf /usr/lib64/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
+        ln -sf /usr/lib64/libplist.so.3 ../resources/lib/libplist-2.0.so.3
+        ln -sf /usr/lib64/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
         
     elif [[ $UBUNTU_CODENAME == "xenial" ]] || [[ $UBUNTU_CODENAME == "bionic" ]] ||
          [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]]; then
