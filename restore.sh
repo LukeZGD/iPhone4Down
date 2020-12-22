@@ -52,7 +52,7 @@ function Main {
         tsschecker="env LD_LIBRARY_PATH=resources/lib resources/tools/tsschecker_linux"
         cherry="resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
         pwnedDFU="sudo $cherry/pwnedDFU"
-        if [[ $UBUNTU_CODENAME == "bionic" ]]; then
+        if [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $PRETTY_NAME == "openSUSE Leap 15.2" ]]; then
             idevicerestore="${idevicerestore}_bionic"
         elif [[ $UBUNTU_CODENAME == "xenial" ]]; then
             idevicerestore="${idevicerestore}_xenial"
@@ -549,14 +549,6 @@ function InstallDependencies {
         # Arch
         sudo pacman -Sy --noconfirm --needed base-devel bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
     
-    elif [[ $ID == "opensuse-tumbleweed" ]]; then
-        #openSUSE Tumbleweed
-        sudo zypper -n install automake bsdiff gcc git-core imobiledevice-tools libimobiledevice libusb-1_0-devel libusbmuxd-tools libtool make readline-devel vim xmlstarlet
-        ln -sf /usr/lib64/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
-        ln -sf /usr/lib64/libplist.so.3 ../resources/lib/libplist-2.0.so.3
-        ln -sf /usr/lib64/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
-        ln -sf /usr/lib64/libzip.so.5 ../resources/lib/libzip.so.4
-        
     elif [[ $UBUNTU_CODENAME == "xenial" ]] || [[ $UBUNTU_CODENAME == "bionic" ]] ||
          [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]]; then
         # Ubuntu
@@ -580,7 +572,7 @@ function InstallDependencies {
             ln -sf /usr/lib/x86_64-linux-gnu/libplist.so.3 ../resources/lib/libplist-2.0.so.3
             ln -sf /usr/lib/x86_64-linux-gnu/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
         fi
-        
+    
     elif [[ $ID == "fedora" ]]; then
         # Fedora
         sudo dnf install -y automake binutils bsdiff git libimobiledevice-utils libtool libusb-devel libusbmuxd-utils make libzip perl-Digest-SHA readline-devel vim-common xmlstarlet
@@ -590,7 +582,16 @@ function InstallDependencies {
             ln -sf /usr/lib64/libplist.so.3 ../resources/lib/libplist-2.0.so.3
             ln -sf /usr/lib64/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
         fi
-        
+    
+    elif [[ $ID == "opensuse-tumbleweed" ]] || [[ $PRETTY_NAME == "openSUSE Leap 15.2" ]]; then
+        # openSUSE
+        [[ $ID == "opensuse-tumbleweed" ]] && iproxy="libusbmuxd-tools" || iproxy="iproxy libzip5"
+        sudo zypper -n in automake bsdiff gcc git imobiledevice-tools $iproxy libimobiledevice libusb-1_0-devel libtool make readline-devel vim xmlstarlet
+        ln -sf /usr/lib64/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
+        ln -sf /usr/lib64/libplist.so.3 ../resources/lib/libplist-2.0.so.3
+        ln -sf /usr/lib64/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
+        ln -sf /usr/lib64/libzip.so.5 ../resources/lib/libzip.so.4
+    
     elif [[ $OSTYPE == "darwin"* ]]; then
         # macOS
         xcode-select --install
