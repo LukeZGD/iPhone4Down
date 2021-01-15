@@ -1,6 +1,6 @@
 #!/bin/bash
 trap 'Clean; exit' INT TERM EXIT
-if [[ $1 != 'NoColor' ]]; then
+if [[ $1 != 'NoColor' ]] && [[ $2 != 'NoColor' ]]; then
     Color_R=$(tput setaf 9)
     Color_G=$(tput setaf 10)
     Color_B=$(tput setaf 12)
@@ -63,15 +63,15 @@ function Main {
     elif [[ $OSTYPE == "darwin"* ]]; then
         macver=${1:-$(sw_vers -productVersion)}
         platform="macos"
-        bspatch="resources/tools/bspatch_$platform"
-        ideviceenterrecovery="resources/libimobiledevice_$platform/ideviceenterrecovery"
-        ideviceinfo="resources/libimobiledevice_$platform/ideviceinfo"
-        idevicerestore="resources/tools/idevicerestore_$platform"
-        iproxy="resources/libimobiledevice_$platform/iproxy"
-        irecovery="resources/libimobiledevice_$platform/irecovery"
+        bspatch="resources/tools/bspatch_macos"
+        ideviceenterrecovery="resources/libimobiledevice_macos/ideviceenterrecovery"
+        ideviceinfo="resources/libimobiledevice_macos/ideviceinfo"
+        idevicerestore="resources/tools/idevicerestore_macos"
+        iproxy="resources/libimobiledevice_macos/iproxy"
+        irecovery="resources/libimobiledevice_macos/irecovery"
         irecoverychk=$irecovery
-        partialzip="resources/tools/partialzip_$platform"
-        tsschecker="resources/tools/tsschecker_$platform"
+        partialzip="resources/tools/partialzip_macos"
+        tsschecker="resources/tools/tsschecker_macos"
         cherry="resources/ch3rryflower/Tools/macos/UNTETHERED"
         pwnedDFU="$cherry/pwnedDFU"
     fi
@@ -127,26 +127,17 @@ function Main {
     fi
     if [ ! $UniqueChipID ]; then
         Error "No device detected."
-    elif [[ $ProductType != iPhone3* ]]; then
+    elif [[ $ProductType != iPhone3,1 ]]; then
         Error "Your device $ProductType is not supported."
     fi
     
-    if [[ $ProductType == iPhone3,1 ]]; then
-        HWModel=n90
-        iBSSURL=http://appldnld.apple.com/iOS7.1/031-4812.20140627.cq6y8/iPhone3,1_7.1.2_11D257_Restore.ipsw
-    elif [[ $ProductType == iPhone3,2 ]]; then
-        HWModel=n90b
-        iBSSURL=http://appldnld.apple.com/iOS7.1/031-4785.20140627.zZ42j/iPhone3,2_7.1.2_11D257_Restore.ipsw
-    elif [[ $ProductType == iPhone3,3 ]]; then
-        HWModel=n92
-        iBSSURL=http://appldnld.apple.com/iOS7.1/031-4768.20140627.DXmmp/iPhone3,3_7.1.2_11D257_Restore.ipsw
-    fi
-    iBSS="iBSS.${HWModel}ap.RELEASE"
+    iBSSURL=http://appldnld.apple.com/iOS7.1/031-4812.20140627.cq6y8/iPhone3,1_7.1.2_11D257_Restore.ipsw
+    iBSS="iBSS.n90ap.RELEASE"
     
     Clean
     mkdir tmp
     
-    if [[ $DFUDevice != 1 ]] && [[ $RecoveryDevice != 1 ]] && [[ $ProductType == iPhone3,1 ]]; then
+    if [[ $DFUDevice != 1 ]] && [[ $RecoveryDevice != 1 ]]; then
         Log "Device in normal mode detected."
         Echo "* The device needs to be in recovery/DFU mode before proceeding."
         read -p "$(Input 'Send device to recovery mode? (y/N): ')" Jailbroken
@@ -163,12 +154,11 @@ function Main {
         Log "Device in DFU mode detected."
         EnterPwnDFU
     fi
-    [[ $pwnDFUDevice == 1 ]] && DFUManual=1
     
     if [[ $1 ]] && [[ $1 != 'NoColor' ]]; then
         Mode="$1"
     else
-        [[ $pwnDFUDevice == 1 ]] && Selection=("Downgrade device") || Selection+=("Just put device in kDFU mode")
+        [[ $pwnDFUDevice == 1 ]] && Selection=("Downgrade device")
         Selection+=("Disable/Enable exploit" "(Re-)Install Dependencies" "(Any other key to exit)")
         Echo "*** Main Menu ***"
         Input "Select an option:"
@@ -176,7 +166,6 @@ function Main {
             case $opt in
                 "Downgrade device" ) Mode='Downgrade'; break;;
                 "Disable/Enable exploit" ) Mode='Remove4'; break;;
-                "Just put device in kDFU mode" ) Mode='kDFU'; break;;
                 "(Re-)Install Dependencies" ) InstallDependencies;;
                 * ) exit;;
             esac
@@ -252,45 +241,7 @@ function Action {
 
     [[ $Mode == 'Downgrade' ]] && Downgrade
     [[ $Mode == 'Remove4' ]] && Remove4
-    [[ $Mode == 'kDFU' ]] && kDFU
     exit
-}
-
-function kDFU {
-    IPSW7="iPhone3,1_7.1.2_11D257_Restore"
-    if [ -e $IPSW7.ipsw ]; then
-        unzip -o -j $IPSW7.ipsw Firmware/dfu/$iBSS.dfu -d tmp
-    else
-        Log "Downloading iBSS..."
-        $partialzip $iBSSURL Firmware/dfu/$iBSS.dfu $iBSS.dfu
-        [ ! -e $iBSS.dfu ] && Error "Downloading iBSS failed."
-        mv $iBSS.dfu tmp
-    fi
-    Log "Patching iBSS..."
-    $bspatch tmp/$iBSS.dfu tmp/pwnediBSS resources/patches/$iBSS.patch
-    
-    [[ $VersionDetect == 5 ]] && kloader='kloader5'
-    [[ ! $kloader ]] && kloader='kloader'
-    
-    [ ! $(which $iproxy) ] && Error "iproxy cannot be found. Please re-install dependencies and try again" "./restore.sh Install"
-    $iproxy 2222 22 &
-    iproxyPID=$!    
-    Log "Copying stuff to device via SSH..."
-    Echo "* Make sure OpenSSH is installed on the device!"
-    Echo "* Enter root password of your iOS device when prompted, default is 'alpine'"
-    scp -P 2222 resources/tools/$kloader tmp/pwnediBSS root@127.0.0.1:/
-    [ $? == 1 ] && Error "Cannot connect to device via SSH. Please check your ~/.ssh/known_hosts file and try again" "You may also run: rm ~/.ssh/known_hosts"
-    ssh -p 2222 root@127.0.0.1 "/$kloader /pwnediBSS" &
-    echo
-    Echo "* Press POWER or HOME button when screen goes black on the device"
-    Log "Finding device in DFU mode..."
-    while [[ $DFUDevice != 1 ]]; do
-        [[ $platform == linux ]] && DFUDevice=$(lsusb | grep -c '1227')
-        [[ $platform == macos ]] && [[ $($irecovery -q 2>/dev/null | grep 'MODE' | cut -c 7-) == "DFU" ]] && DFUDevice=1
-        sleep 1
-    done
-    Log "Found device in DFU mode."
-    kill $iproxyPID
 }
 
 function Recovery {
@@ -376,8 +327,6 @@ function Downgrade {
         [[ ! -e $IPSW.ipsw ]] && Error "iOS $OSVer-$BuildVer IPSW cannot be found."
         [[ ! -e $IPSW7.ipsw ]] && Error "iOS 7.1.2 IPSW cannot be found."
     fi
-    
-    [ ! $DFUManual ] && kDFU
     
     if [[ $OSVer == 7.1.1 ]]; then
         IV=b110991061d76f74c1fc05ddd7cff540
@@ -594,9 +543,10 @@ function InstallDependencies {
     
     elif [[ $OSTYPE == "darwin"* ]]; then
         # macOS
-        imobiledevicenet=$(curl -s https://api.github.com/repos/libimobiledevice-win32/imobiledevice-net/releases/latest | grep browser_download_url | cut -d '"' -f 4 | awk '/osx-x64/ {print $1}')
+        #imobiledevicenet=$(curl -s https://api.github.com/repos/libimobiledevice-win32/imobiledevice-net/releases/latest | grep browser_download_url | cut -d '"' -f 4 | awk '/osx-x64/ {print $1}')
         xcode-select --install
-        curl -L $imobiledevicenet -o libimobiledevice.zip
+        #curl -L $imobiledevicenet -o libimobiledevice.zip
+        SaveFile https://github.com/libimobiledevice-win32/imobiledevice-net/releases/download/v1.3.14/libimobiledevice.1.2.1-r1116-osx-x64.zip libimobiledevice.zip 328e809dea350ae68fb644225bbf8469c0f0634b
         Log "(Enter root password of your Mac when prompted)"
         sudo codesign --sign - --force --deep ../resources/tools/idevicerestore_macos
         

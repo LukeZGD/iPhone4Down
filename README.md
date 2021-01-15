@@ -2,9 +2,9 @@
 ### iPhone 4 downgrade script for Linux (uses ch3rryflower)
 
 - This script uses an older Linux compiled version of ch3rryflower and automates the downgrade process for the iPhone 4
-- This downgrade script/tool actually supports **both Linux and macOS**
-    - This script is mostly aimed for Linux users though
-    - For macOS users you may use [cherryflowerJB](https://dora2ios.web.app/CFJB/) instead for more support
+- **Linux and macOS** are supported by this downgrade script/tool
+  - Windows users can create a Linux live USB (see Requirements)
+  - macOS users should use [cherryflowerJB](https://dora2ios.web.app/CFJB/) instead for more support
 - **This supports iPhone3,1 only**
 - The downgrades have the option to jailbreak
 - **You do NOT need blobs to use this**, the script will get the needed 7.1.2 blobs for you
@@ -20,8 +20,7 @@
     
 ## Requirements:
 - **iPhone 4 (iPhone3,1)**
-- IPSW of the version you want to downgrade to
-- IPSW of iOS 7.1.2
+- IPSW of iOS 7.1.2 and the version you want to downgrade to (Links in [ipsw.me](https://ipsw.me/iPhone3,1))
 - A **64-bit Linux install/live USB** or a supported **macOS** version
     - See supported OS versions and Linux distros below
     - A Linux live USB can be easily created with tools like [balenaEtcher](https://www.balena.io/etcher/) or [Rufus](https://rufus.ie/)
@@ -36,10 +35,12 @@
 6. Follow instructions
 
 ## Supported OS versions/distros:
-- Ubuntu [16.04](http://releases.ubuntu.com/xenial/), [18.04](http://releases.ubuntu.com/bionic/), [20.04](http://releases.ubuntu.com/focal/), and [20.10](https://releases.ubuntu.com/groovy/) and Ubuntu-based distros like [Linux Mint](https://www.linuxmint.com/)
+- Ubuntu [20.04](http://releases.ubuntu.com/focal/) and [20.10](https://releases.ubuntu.com/groovy/); and Ubuntu-based distros like [Linux Mint](https://www.linuxmint.com/)
+- Ubuntu [16.04](http://releases.ubuntu.com/xenial/) and [18.04](http://releases.ubuntu.com/bionic/)
+    - Use 20.04 and newer as older versions are untested
 - [Arch Linux](https://www.archlinux.org/) and Arch-based distros like [Manjaro](https://manjaro.org/)
-- openSUSE [Tumbleweed](https://software.opensuse.org/distributions/tumbleweed), [Leap 15.2](https://software.opensuse.org/distributions/leap)
 - [Fedora 32 to 33](https://getfedora.org/)
+- openSUSE [Tumbleweed](https://software.opensuse.org/distributions/tumbleweed), [Leap 15.2](https://software.opensuse.org/distributions/leap)
 - macOS 10.13 to 10.15 (untested)
 
 ## Tools and other stuff used by this script:
