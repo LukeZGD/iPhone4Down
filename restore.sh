@@ -496,7 +496,7 @@ function InstallDependencies {
     Log "Installing dependencies..."
     if [[ $ID == "arch" ]] || [[ $ID_LIKE == "arch" ]]; then
         # Arch
-        sudo pacman -Sy --noconfirm --needed base-devel bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
+        sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
     
     elif [[ $UBUNTU_CODENAME == "xenial" ]] || [[ $UBUNTU_CODENAME == "bionic" ]] ||
          [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]]; then
