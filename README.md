@@ -41,7 +41,7 @@
 - [Arch Linux](https://www.archlinux.org/) and Arch-based distros like [EndeavourOS](https://endeavouros.com/)
 - [Fedora 32 to 33](https://getfedora.org/)
 - openSUSE [Tumbleweed](https://software.opensuse.org/distributions/tumbleweed), [Leap 15.2](https://software.opensuse.org/distributions/leap)
-- macOS 10.13 to 10.15 (untested)
+- macOS 10.12 to 11 (untested)
 
 ## Tools and other stuff used by this script:
 - [ch3rryflower by dora2iOS](https://github.com/dora2-iOS/ch3rryflower/tree/316d2cdc5351c918e9db9650247b91632af3f11f)
