@@ -84,9 +84,6 @@ function Main {
     [[ $(uname -m) != 'x86_64' ]] && Error "Only x86_64 distributions are supported. Use a 64-bit distro and try again"
     
     if [[ $1 == Install ]] || [ ! $(which $irecoverychk) ] || [ ! $(which $ideviceinfo) ]; then
-        cd resources
-        rm -rf libimobiledevice_$platform libirecovery
-        cd ..
         InstallDependencies
     fi
     
@@ -491,7 +488,9 @@ function iOS4Fix {
 
 function InstallDependencies {
     mkdir tmp 2>/dev/null
-    cd tmp
+    cd resources
+    rm -rf lib/* libimobiledevice_$platform libirecovery
+    cd ../tmp
     
     Log "Installing dependencies..."
     if [[ $ID == "arch" ]] || [[ $ID_LIKE == "arch" ]]; then
