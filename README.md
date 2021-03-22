@@ -41,6 +41,7 @@
 - [Arch Linux](https://www.archlinux.org/) and Arch-based distros like [EndeavourOS](https://endeavouros.com/)
 - [Fedora 32 to 33](https://getfedora.org/)
 - openSUSE [Tumbleweed](https://software.opensuse.org/distributions/tumbleweed), [Leap 15.2](https://software.opensuse.org/distributions/leap)
+- [Debian Buster, Bullseye, Sid](https://www.debian.org/); and Debian-based distros like [MX Linux](https://mxlinux.org/)
 - macOS 10.12 to 11 (untested)
 
 ## Tools and other stuff used by this script:

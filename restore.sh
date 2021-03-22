@@ -52,7 +52,8 @@ function Main {
         tsschecker="env LD_LIBRARY_PATH=resources/lib resources/tools/tsschecker_linux"
         cherry="resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
         pwnedDFU="sudo $cherry/pwnedDFU"
-        if [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $PRETTY_NAME == "openSUSE Leap 15.2" ]]; then
+        if [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $VERSION == "10 (buster)" ]] ||
+           [[ $PRETTY_NAME == "openSUSE Leap 15.2" ]]; then
             idevicerestore="${idevicerestore}_bionic"
         elif [[ $UBUNTU_CODENAME == "xenial" ]]; then
             idevicerestore="${idevicerestore}_xenial"
@@ -498,22 +499,26 @@ function InstallDependencies {
         sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
     
     elif [[ $UBUNTU_CODENAME == "xenial" ]] || [[ $UBUNTU_CODENAME == "bionic" ]] ||
-         [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]]; then
-        # Ubuntu
-        sudo add-apt-repository universe
+         [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]] ||
+         [[ $VERSION == "10 (buster)" ]] || [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
+        # Ubuntu, Debian
+        [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository universe
         sudo apt update
-        sudo apt install -y autoconf automake bsdiff build-essential checkinstall curl git libglib2.0-dev libimobiledevice-utils libreadline-dev libtool-bin libusb-1.0-0-dev libusbmuxd-tools openssh-client usbmuxd usbutils xmlstarlet xxd
+        sudo apt install -y autoconf automake bsdiff build-essential curl git libglib2.0-dev libimobiledevice6 libimobiledevice-utils libreadline-dev libtool-bin libusb-1.0-0-dev libusbmuxd-tools openssh-client usbmuxd usbutils xmlstarlet xxd
         SavePkg
-        if [[ $UBUNTU_CODENAME == "bionic" ]]; then
-            sudo dpkg -i libzip5.deb
+        if [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $VERSION == "10 (buster)" ]]; then
+            cp libzip.so.5 ../resources/lib
             SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/tools_linux_bionic.zip tools_linux_bionic.zip 959abbafacfdaddf87dd07683127da1dab6c835f
             unzip tools_linux_bionic.zip -d ../resources/tools
         elif [[ $UBUNTU_CODENAME == "xenial" ]]; then
-            sudo apt install -y libzip4 python libpng12-0
+            sudo apt install -y libpng12-0
             SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/tools_linux_xenial.zip tools_linux_xenial.zip b74861fd87511a92e36e27bf2ec3e1e83b6e8200
             unzip tools_linux_xenial.zip -d ../resources/tools
+        elif [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
+            cp libzip.so.5 ../resources/lib
         else
             sudo apt install -y libzip5
+            cp libpng12.so.0 ../resources/lib
         fi
         if [[ $UBUNTU_CODENAME == "focal" ]]; then
             ln -sf /usr/lib/x86_64-linux-gnu/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
@@ -589,7 +594,7 @@ function SaveFile {
 function SavePkg {
     if [[ ! -d ../saved/pkg ]]; then
         Log "Downloading packages..."
-        SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/depends_linux.zip depends_linux.zip 7daf991e0e80647547f5ceb33007eae6c99707d2
+        SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/depends2_linux.zip depends_linux.zip 38cf1db21c9aba88f0de95a1a7959ac2ac53c464
         mkdir -p ../saved/pkg
         unzip depends_linux.zip -d ../saved/pkg
     fi
