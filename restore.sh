@@ -65,11 +65,11 @@ function Main {
         macver=${1:-$(sw_vers -productVersion)}
         platform="macos"
         bspatch="resources/tools/bspatch_macos"
-        ideviceenterrecovery="resources/libimobiledevice_macos/ideviceenterrecovery"
-        ideviceinfo="resources/libimobiledevice_macos/ideviceinfo"
+        ideviceenterrecovery="resources/libimobiledevice/ideviceenterrecovery"
+        ideviceinfo="resources/libimobiledevice/ideviceinfo"
         idevicerestore="resources/tools/idevicerestore_macos"
-        iproxy="resources/libimobiledevice_macos/iproxy"
-        irecovery="resources/libimobiledevice_macos/irecovery"
+        iproxy="resources/libimobiledevice/iproxy"
+        irecovery="resources/libimobiledevice/irecovery"
         irecoverychk=$irecovery
         partialzip="resources/tools/partialzip_macos"
         tsschecker="resources/tools/tsschecker_macos"
@@ -490,7 +490,7 @@ function iOS4Fix {
 function InstallDependencies {
     mkdir tmp 2>/dev/null
     cd resources
-    rm -rf lib/* libimobiledevice_$platform libirecovery
+    rm -rf lib/* libimobiledevice* libirecovery
     cd ../tmp
     
     Log "Installing dependencies..."
@@ -498,8 +498,8 @@ function InstallDependencies {
         # Arch
         sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
     
-    elif [[ $UBUNTU_CODENAME == "xenial" ]] || [[ $UBUNTU_CODENAME == "bionic" ]] ||
-         [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]] ||
+    elif [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $UBUNTU_CODENAME == "focal" ]] ||
+         [[ $UBUNTU_CODENAME == "groovy" ]] || [[ $UBUNTU_CODENAME == "hirsute" ]] ||
          [[ $VERSION == "10 (buster)" ]] || [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
         # Ubuntu, Debian
         [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository universe
@@ -510,15 +510,10 @@ function InstallDependencies {
             cp libzip.so.5 ../resources/lib
             SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/tools_linux_bionic.zip tools_linux_bionic.zip 959abbafacfdaddf87dd07683127da1dab6c835f
             unzip tools_linux_bionic.zip -d ../resources/tools
-        elif [[ $UBUNTU_CODENAME == "xenial" ]]; then
-            sudo apt install -y libcurl3 libzip4 libpng12-0
-            SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/tools_linux_xenial.zip tools_linux_xenial.zip b74861fd87511a92e36e27bf2ec3e1e83b6e8200
-            unzip tools_linux_xenial.zip -d ../resources/tools
         elif [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
             cp libzip.so.5 ../resources/lib
         else
             sudo apt install -y libzip5
-            cp libpng12.so.0 ../resources/lib
         fi
         if [[ $UBUNTU_CODENAME == "focal" ]]; then
             ln -sf /usr/lib/x86_64-linux-gnu/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
@@ -563,9 +558,9 @@ function InstallDependencies {
         ln -sf ../libirecovery/lib/libirecovery.so.3 ../resources/lib/libirecovery-1.0.so.3
         ln -sf ../libirecovery/lib/libirecovery.so.3 ../resources/lib/libirecovery.so.3
     else
-        mkdir ../resources/libimobiledevice_$platform
-        unzip libimobiledevice.zip -d ../resources/libimobiledevice_$platform
-        chmod +x ../resources/libimobiledevice_$platform/*
+        mkdir ../resources/libimobiledevice
+        unzip libimobiledevice.zip -d ../resources/libimobiledevice
+        chmod +x ../resources/libimobiledevice/*
         Echo "* macOS device detected. For macOS, it is recommended to use cherryflowerJB instead as this script is mostly aimed for Linux users"
         Echo "* If you still want to use this, you need to have Homebrew installed, and install libpng using 'brew install libpng'"
         Echo "* There may be other dependencies needed but I haven't tested it"
@@ -592,13 +587,13 @@ function SaveFile {
 }
 
 function SavePkg {
-    if [[ ! -d ../saved/pkg ]]; then
+    if [[ ! -d ../saved/lib ]]; then
         Log "Downloading packages..."
         SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/depends2_linux.zip depends_linux.zip 38cf1db21c9aba88f0de95a1a7959ac2ac53c464
-        mkdir -p ../saved/pkg
-        unzip depends_linux.zip -d ../saved/pkg
+        mkdir -p ../saved/lib
+        unzip depends_linux.zip -d ../saved/lib
     fi
-    cp ../saved/pkg/* .
+    cp ../saved/lib/* .
 }
 
 cd "$(dirname $0)"

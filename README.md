@@ -19,7 +19,7 @@
 - I don't think restoring to any iOS 7.x version works (gets stuck in recovery mode)
     
 ## Requirements:
-- **iPhone 4 (iPhone3,1)**
+- **iPhone 4 GSM (iPhone3,1)**
 - IPSW of iOS 7.1.2 and the version you want to downgrade to (Links in [ipsw.me](https://ipsw.me/iPhone3,1))
 - A **64-bit Linux install/live USB** or a supported **macOS** version
     - See supported OS versions and Linux distros below
@@ -35,14 +35,12 @@
 6. Follow instructions
 
 ## Supported OS versions/distros:
-- Ubuntu [20.04](http://releases.ubuntu.com/focal/) and [20.10](https://releases.ubuntu.com/groovy/); and Ubuntu-based distros like [Linux Mint](https://www.linuxmint.com/)
-- Ubuntu [16.04](http://releases.ubuntu.com/xenial/) and [18.04](http://releases.ubuntu.com/bionic/)
-    - Use 20.04 and newer as older versions are untested
-- [Arch Linux](https://www.archlinux.org/) and Arch-based distros like [EndeavourOS](https://endeavouros.com/)
-- [Fedora 32 to 33](https://getfedora.org/)
-- openSUSE [Tumbleweed](https://software.opensuse.org/distributions/tumbleweed), [Leap 15.2](https://software.opensuse.org/distributions/leap)
-- [Debian Buster, Bullseye, Sid](https://www.debian.org/); and Debian-based distros like [MX Linux](https://mxlinux.org/)
-- macOS 10.12 to 11 (untested)
+- **Ubuntu** [18.04](https://releases.ubuntu.com/bionic/), [20.04](https://releases.ubuntu.com/focal/), [20.10](https://releases.ubuntu.com/groovy/), [21.04](https://releases.ubuntu.com/hirsute/); and Ubuntu-based distros like [Linux Mint](https://www.linuxmint.com/)
+- [**Arch Linux**](https://www.archlinux.org/) and Arch-based distros like [EndeavourOS](https://endeavouros.com/)
+- [**Fedora** 32 to 33](https://getfedora.org/)
+- **openSUSE** [Tumbleweed](https://software.opensuse.org/distributions/tumbleweed), [Leap 15.2](https://software.opensuse.org/distributions/leap)
+- [**Debian** Buster, Bullseye, Sid](https://www.debian.org/); and Debian-based distros like [MX Linux](https://mxlinux.org/)
+- **macOS** 10.12 to 11
 
 ## Tools and other stuff used by this script:
 - [ch3rryflower by dora2iOS](https://github.com/dora2-iOS/ch3rryflower/tree/316d2cdc5351c918e9db9650247b91632af3f11f)
