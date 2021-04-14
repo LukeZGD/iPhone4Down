@@ -25,7 +25,7 @@
     - See supported OS versions and Linux distros below
     - A Linux live USB can be easily created with tools like [balenaEtcher](https://www.balena.io/etcher/) or [Rufus](https://rufus.ie/)
 
-## How to use:
+## Usage:
 1. [Download iPhone4Down here](https://github.com/LukeZGD/iPhone4Down/archive/master.zip) and extract the zip archive
 2. Plug in your iOS device
 3. Open a Terminal window
