@@ -54,3 +54,6 @@
 - [kloader](https://www.youtube.com/watch?v=fh0tB6fp0Sc)
 - [kloader5 for iOS 5](https://mtmdev.org/pmbonneau-archive)
 - [partial-zip](https://github.com/matteyeux/partial-zip)
+- [evasi0n](https://www.theiphonewiki.com/wiki/Evasi0n)
+- [p0sixspwn](https://www.theiphonewiki.com/wiki/p0sixspwn)
+- [unthredeh4il](https://www.theiphonewiki.com/wiki/Unthredera1n#unthredeh4il)
