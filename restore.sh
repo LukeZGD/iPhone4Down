@@ -454,7 +454,7 @@ function Downgrade {
     Log "Extracting IPSW..."
     unzip -q $IPSW.ipsw -d $IPSW/
     Log "Proceeding to idevicerestore... (Enter root password of your PC/Mac when prompted)"
-    [[ $platform == macOS ]] && sudo codesign --sign - --force --deep $idevicerestore
+    [[ $platform == macos ]] && sudo codesign --sign - --force --deep $idevicerestore
     $idevicerestore -y -e -w $IPSW.ipsw
     Log "Restoring done!"
     Log "Downgrade script done!"
