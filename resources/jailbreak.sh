@@ -8,26 +8,26 @@ if [[ $1 != 'NoColor' ]]; then
     Color_N=$(tput sgr0)
 fi
 
-function Clean {
+Clean() {
     rm -rf tmp/
 }
 
-function Echo {
+Echo() {
     echo "${Color_B}$1 ${Color_N}"
 }
 
-function Error {
+Error() {
     echo -e "\n${Color_R}[Error] $1 ${Color_N}"
     [[ ! -z $2 ]] && echo "${Color_R}* $2 ${Color_N}"
     echo
     exit
 }
 
-function Input {
+Input() {
     echo "${Color_Y}[Input] $1 ${Color_N}"
 }
 
-function Log {
+Log() {
     echo "${Color_G}[Log] $1 ${Color_N}"
 }
 

@@ -8,30 +8,30 @@ if [[ $1 != 'NoColor' ]] && [[ $2 != 'NoColor' ]]; then
     Color_N=$(tput sgr0)
 fi
 
-function Clean {
+Clean() {
     rm -rf iP*/ shsh/ tmp/ iBoot *_iPhone3,1_7.1.2-*.shsh2 FirmwareBundles src
 }
 
-function Echo {
+Echo() {
     echo "${Color_B}$1 ${Color_N}"
 }
 
-function Error {
+Error() {
     echo -e "\n${Color_R}[Error] $1 ${Color_N}"
     [[ ! -z $2 ]] && echo "${Color_R}* $2 ${Color_N}"
     echo
     exit
 }
 
-function Input {
+Input() {
     echo "${Color_Y}[Input] $1 ${Color_N}"
 }
 
-function Log {
+Log() {
     echo "${Color_G}[Log] $1 ${Color_N}"
 }
 
-function Main {
+Main() {
     clear
     Echo "***** iPhone4Down *****"
     Echo "* Downgrade script by LukeZGD"
@@ -172,7 +172,7 @@ function Main {
     SelectVersion
 }
 
-function SelectVersion {
+SelectVersion() {
     Selection=("6.1.3" "5.1.1 (9B208)" "5.1.1 (9B206)" "More versions (5.0-6.1.2)" "4.3.x (untested)" "7.x (not working)")
     Selection2=("6.1.2" "6.1" "6.0.1" "6.0" "5.1" "5.0.1" "5.0")
     Selection3=("7.1.1" "7.1" "7.0.6" "7.0.4" "7.0.3" "7.0.2" "7.0")
@@ -230,7 +230,7 @@ function SelectVersion {
     Action
 }
 
-function Action {
+Action() {
     Log "Option: $Mode"
     if [[ $Mode == 'Downgrade' ]] && [[ $OSVer != 7.1* ]]; then
         read -p "$(Input 'Jailbreak the selected iOS version? (y/N): ')" Jailbreak
@@ -242,7 +242,7 @@ function Action {
     exit
 }
 
-function Recovery {
+Recovery() {
     [[ $($irecovery -q 2>/dev/null | grep 'MODE' | cut -c 7-) == "Recovery" ]] && RecoveryDevice=1
     if [[ $RecoveryDevice != 1 ]]; then
         Log "Entering recovery mode..."
@@ -277,14 +277,14 @@ function Recovery {
     fi
 }
 
-function EnterPwnDFU {
+EnterPwnDFU() {
     echo -e "\n$(Log 'Entering pwnDFU mode...')"
     $pwnedDFU -p
     pwnDFUDevice=$($irecovery -q | grep -c 'PWND')
     [[ $pwnDFUDevice != 1 ]] && Error "Failed to enter pwnDFU mode. Please run the script again" "./restore.sh Downgrade"
 }
 
-function Remove4 {
+Remove4() {
     Input "Select option:"
     select opt in "Disable exploit" "Enable exploit" "(Any other key to exit)"; do
         case $opt in
@@ -316,7 +316,7 @@ function Remove4 {
     Log "Done!"
 }
 
-function Downgrade {
+Downgrade() {
     [[ $Jailbreak == 1 ]] && Custom="CustomJB" || Custom="Custom"
     IPSW="iPhone3,1_${OSVer}_${BuildVer}_Restore"
     IPSWCustom="iPhone3,1_${OSVer}_${BuildVer}_${Custom}"
@@ -460,7 +460,7 @@ function Downgrade {
     Log "Downgrade script done!"
 }
 
-function iOS4Fix {
+iOS4Fix() {
     Log "iOS 4 Fix" # From ios4fix
     cp shsh/$UniqueChipID-iPhone3,1-$OSVer.shsh tmp/apticket.plist
     zip -d $IPSWCustom.ipsw Firmware/all_flash/all_flash.n90ap.production/manifest
@@ -488,7 +488,7 @@ function iOS4Fix {
     cd ../..
 }
 
-function InstallDependencies {
+InstallDependencies() {
     mkdir tmp 2>/dev/null
     cd resources
     rm -rf lib/* libimobiledevice* libirecovery
@@ -569,7 +569,7 @@ function InstallDependencies {
     exit
 }
 
-function Compile {
+Compile() {
     git clone --depth 1 https://github.com/$1/$2.git
     cd $2
     ./autogen.sh --prefix="$(cd ../.. && pwd)/resources/$2"
@@ -578,14 +578,14 @@ function Compile {
     sudo rm -rf $2
 }
 
-function SaveFile {
+SaveFile() {
     curl -L $1 -o $2
     if [[ $(shasum $2 | awk '{print $1}') != $3 ]]; then
         Error "Verifying failed. Please run the script again" "./restore.sh Install"
     fi
 }
 
-function SavePkg {
+SavePkg() {
     if [[ ! -d ../saved/lib ]]; then
         Log "Downloading packages..."
         SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/depends2_linux.zip depends_linux.zip 38cf1db21c9aba88f0de95a1a7959ac2ac53c464
