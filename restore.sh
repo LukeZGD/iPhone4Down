@@ -82,7 +82,8 @@ Main() {
     [[ ! $(ping -c1 8.8.8.8 2>/dev/null) ]] && Error "Please check your Internet connection before proceeding."
     [[ $(uname -m) != 'x86_64' ]] && Error "Only x86_64 distributions are supported. Use a 64-bit distro and try again"
     
-    if [[ $1 == Install ]] || [ ! $(which $irecoverychk) ] || [ ! $(which $ideviceinfo) ]; then
+    if [[ $1 == Install ]] || [ ! $(which $irecoverychk) ] ||
+       [[ ! $(which bspatch) ]] || [ ! $(which $ideviceinfo) ]; then
         InstallDependencies
     fi
     
