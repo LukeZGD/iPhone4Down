@@ -41,7 +41,6 @@ Main() {
     if [[ $OSTYPE == "linux"* ]]; then
         . /etc/os-release 2>/dev/null
         platform="linux"
-        bspatch="bspatch"
         ideviceenterrecovery="ideviceenterrecovery"
         ideviceinfo="ideviceinfo"
         idevicerestore="sudo LD_LIBRARY_PATH=resources/lib resources/tools/idevicerestore_linux"
@@ -64,7 +63,6 @@ Main() {
     elif [[ $OSTYPE == "darwin"* ]]; then
         macver=${1:-$(sw_vers -productVersion)}
         platform="macos"
-        bspatch="resources/tools/bspatch_macos"
         ideviceenterrecovery="resources/libimobiledevice/ideviceenterrecovery"
         ideviceinfo="resources/libimobiledevice/ideviceinfo"
         idevicerestore="resources/tools/idevicerestore_macos"
@@ -303,7 +301,7 @@ Remove4() {
         cp saved/iBSS_8L1 tmp/iBSS
     fi
     Log "Patching iBSS..."
-    $bspatch tmp/iBSS tmp/pwnediBSS resources/patches/iBSS.n90ap.8L1.patch
+    bspatch tmp/iBSS tmp/pwnediBSS resources/patches/iBSS.n90ap.8L1.patch
     Log "Booting iBSS..."
     $pwnedDFU -f tmp/pwnediBSS
     sleep 2
