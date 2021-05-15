@@ -90,7 +90,7 @@ Main() {
     if [[ ! -d resources/ch3rryflower ]]; then
         mkdir tmp 2>/dev/null
         cd tmp
-        Echo "Downloading ch3rryflower..."
+        Log "Downloading ch3rryflower..."
         SaveFile https://github.com/dora2-iOS/ch3rryflower/archive/316d2cdc5351c918e9db9650247b91632af3f11f.zip ch3rryflower.zip 790d56db354151b9740c929e52c097ba57f2929d
         cd ../resources
         unzip -q ../tmp/ch3rryflower.zip -d .
@@ -510,7 +510,7 @@ InstallDependencies() {
             cp libzip.so.5 ../resources/lib
             SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/tools_linux_bionic.zip tools_linux_bionic.zip 959abbafacfdaddf87dd07683127da1dab6c835f
             unzip tools_linux_bionic.zip -d ../resources/tools
-        elif [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
+        elif [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]] || [[ $UBUNTU_CODENAME == "hirsute" ]]; then
             cp libzip.so.5 ../resources/lib
         else
             sudo apt install -y libzip5
