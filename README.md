@@ -12,6 +12,7 @@
 - Newer models may not work with downgrades below iOS 5
 - If you want to go back and restore to iOS 7.1.2, you need to disable the exploit
     - From the menu, select "Disable/Enable exploit" > "Disable exploit" while device is in DFU mode
+    - If disabling the exploit did not work, [try these steps](https://github.com/LukeZGD/iPhone4Down/issues/3#issuecomment-841622695)
 
 ## Supported iOS versions
 - This script supports downgrading to **any version from iOS 5.0 to 6.1.3**

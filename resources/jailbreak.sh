@@ -77,6 +77,7 @@ Echo "* Script by LukeZGD"
 echo
 Echo "Mode: Jailbreak/Ramdisk"
 Echo "* This uses files and script from 4tify by Zurac-Apps"
+Echo "* Make sure that your device is already in DFU mode"
 mkdir tmp 2>/dev/null
 
 if [[ ! -d ramdisk ]]; then # [ ! -d jailbreak7 ]] || 
@@ -96,7 +97,7 @@ if [[ ! -d ramdisk ]]; then # [ ! -d jailbreak7 ]] ||
     #for file in "${Debs[@]}"; do
     #    curl -L $JailbreakLink/support_files/7.1.2/Jailbreak/$file -o $file
     #done
-    #cd ..
+    cd ..
     cp -rf ramdisk jailbreak7 ..
     cd ..
 fi
@@ -145,26 +146,35 @@ while [[ $(lsusb | grep -c "iPhone") != 1 ]]; do
     sleep 2
 done
 
-$iproxy 2022 22 &
+#$iproxy 2022 22 &
 #cd ../jailbreak7
 
+# Stop here for now (ramdisk only)
+Log "Device is now in SSH ramdisk mode"
+echo
+Echo "* To access SSH ramdisk, run:"
+Echo "    iproxy 2222 22"
+Echo "* Then SSH to 127.0.0.1:2022"
+Echo "    ssh -p 2022 root@127.0.0.1"
+Echo "* Enter root password: alpine"
+Echo "* Mount filesystems with these commands:"
+Echo "    mount_hfs /dev/disk0s1s1 /mnt1"
+Echo "    mount_hfs /dev/disk0s1s1 /mnt1/private/var"
+exit
+
+# this throws errors for some reason
 Log "Mounting filesystems..."
 expect -c "
 spawn ssh -o StrictHostKeyChecking=no -p 2022 root@127.0.0.1
 expect \"root@127.0.0.1's password:\"
 send \"alpine\r\"
 expect \"sh-4.0#\"
-send \"mount_hfs /dev/disk0s1s1 /mnt1 \r\"
+send \"mount_hfs /dev/disk0s1s1 /mnt1\r\"
 expect \"sh-4.0#\"
-send \"mount_hfs /dev/disk0s1s2 /mnt1/private/var \r\"
+send \"mount_hfs /dev/disk0s1s2 /mnt1/private/var\r\"
 expect \"sh-4.0#\"
-send \"exit \r\"
+send \"exit\r\"
 expect eof"
-
-# Stop here for now (ramdisk only)
-Log "Device is now in SSH ramdisk mode. (filesystems are also mounted in /mnt1)"
-Log "Jailbreak function is disabled for now"
-exit
 
 Log "Sending jailbreak files..."
 expect -c "

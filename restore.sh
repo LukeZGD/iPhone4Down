@@ -436,7 +436,7 @@ Downgrade() {
     if [[ ! -e $IPSWCustom.ipsw ]]; then
         Echo "* By default, memory option is set to Y, you may select N later if you encounter problems"
         Echo "* If it doesn't work with both, you might not have enough RAM or tmp storage"
-        read -p "$(Input 'Memory option? (press ENTER if unsure) (Y/n): ')" JBMemory
+        read -p "$(Input 'Memory option? (press Enter/Return if unsure) (Y/n): ')" JBMemory
         [[ $JBMemory != n ]] && [[ $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW with ch3rryflower..."
         sed -z -i "s|\n../bin|\n../$cherry/bin|g" $cherry/make_iBoot.sh
@@ -496,7 +496,7 @@ InstallDependencies() {
     Log "Installing dependencies..."
     if [[ $ID == "arch" ]] || [[ $ID_LIKE == "arch" ]]; then
         # Arch
-        sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
+        sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl expect libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
     
     elif [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $UBUNTU_CODENAME == "focal" ]] ||
          [[ $UBUNTU_CODENAME == "groovy" ]] || [[ $UBUNTU_CODENAME == "hirsute" ]] ||
@@ -504,7 +504,7 @@ InstallDependencies() {
         # Ubuntu, Debian
         [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository universe
         sudo apt update
-        sudo apt install -y autoconf automake bsdiff build-essential curl git libglib2.0-dev libimobiledevice6 libimobiledevice-utils libreadline-dev libtool-bin libusb-1.0-0-dev libusbmuxd-tools openssh-client usbmuxd usbutils xmlstarlet xxd
+        sudo apt install -y autoconf automake bsdiff build-essential curl expect git libglib2.0-dev libimobiledevice6 libimobiledevice-utils libreadline-dev libtool-bin libusb-1.0-0-dev libusbmuxd-tools openssh-client usbmuxd usbutils xmlstarlet xxd
         SavePkg
         if [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $VERSION == "10 (buster)" ]]; then
             cp libzip.so.5 ../resources/lib
@@ -523,7 +523,7 @@ InstallDependencies() {
     
     elif [[ $ID == "fedora" ]]; then
         # Fedora
-        sudo dnf install -y automake binutils bsdiff git libimobiledevice-utils libtool libusb-devel libusbmuxd-utils make libzip perl-Digest-SHA readline-devel vim-common xmlstarlet
+        sudo dnf install -y automake binutils bsdiff expect git libimobiledevice-utils libtool libusb-devel libusbmuxd-utils make libzip perl-Digest-SHA readline-devel vim-common xmlstarlet
         SavePkg
         if (( $VERSION_ID <= 32 )); then
             ln -sf /usr/lib64/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
@@ -534,7 +534,7 @@ InstallDependencies() {
     elif [[ $ID == "opensuse-tumbleweed" ]] || [[ $PRETTY_NAME == "openSUSE Leap 15.2" ]]; then
         # openSUSE
         [[ $ID == "opensuse-tumbleweed" ]] && iproxy="libusbmuxd-tools" || iproxy="iproxy libzip5"
-        sudo zypper -n in automake bsdiff gcc git imobiledevice-tools $iproxy libimobiledevice libusb-1_0-devel libtool make readline-devel vim xmlstarlet
+        sudo zypper -n in automake bsdiff expect gcc git imobiledevice-tools $iproxy libimobiledevice libusb-1_0-devel libtool make readline-devel vim xmlstarlet
         ln -sf /usr/lib64/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
         ln -sf /usr/lib64/libplist.so.3 ../resources/lib/libplist-2.0.so.3
         ln -sf /usr/lib64/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
