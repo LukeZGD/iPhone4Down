@@ -54,10 +54,6 @@ Main() {
         if [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $VERSION == "10 (buster)" ]] ||
            [[ $PRETTY_NAME == "openSUSE Leap 15.2" ]]; then
             idevicerestore="${idevicerestore}_bionic"
-        elif [[ $UBUNTU_CODENAME == "xenial" ]]; then
-            idevicerestore="${idevicerestore}_xenial"
-            partialzip="${partialzip}_xenial"
-            tsschecker="${tsschecker}_xenial"
         fi
 
     elif [[ $OSTYPE == "darwin"* ]]; then
@@ -267,7 +263,6 @@ Recovery() {
         echo -n "$i "
         sleep 1
     done
-    sleep 2
     [[ $($irecovery -q 2>/dev/null | grep 'MODE' | cut -c 7-) == "DFU" ]] && DFUDevice=1
     if [[ $DFUDevice == 1 ]]; then
         EnterPwnDFU
