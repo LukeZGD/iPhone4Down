@@ -5,13 +5,14 @@
 FirmwareBundles/
 iBoot
 iP*
-saved/
-src/
+libimobiledevice*/
 resources/ch3rryflower/
 resources/ipwndfu/
 resources/jailbreak/Cydia*
 resources/jailbreak7/
 resources/libirecovery/
 resources/ramdisk/
+saved/
 shsh/
+src/
 tmp/

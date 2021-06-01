@@ -41,46 +41,38 @@ Main() {
     if [[ $OSTYPE == "linux"* ]]; then
         . /etc/os-release 2>/dev/null
         platform="linux"
-        ideviceenterrecovery="ideviceenterrecovery"
-        ideviceinfo="ideviceinfo"
-        idevicerestore="sudo LD_LIBRARY_PATH=resources/lib resources/tools/idevicerestore_linux"
-        iproxy="iproxy"
-        irecoverychk="resources/libirecovery/bin/irecovery"
-        irecovery="sudo LD_LIBRARY_PATH=resources/lib $irecoverychk"
-        partialzip="resources/tools/partialzip_linux"
-        tsschecker="env LD_LIBRARY_PATH=resources/lib resources/tools/tsschecker_linux"
-        cherry="resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
+    
+        cherry="./resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
+        idevicerestore="sudo LD_LIBRARY_PATH=./resources/lib ./resources/tools/idevicerestore_linux"
         pwnedDFU="sudo $cherry/pwnedDFU"
-        if [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $VERSION == "10 (buster)" ]] ||
-           [[ $PRETTY_NAME == "openSUSE Leap 15.2" ]]; then
-            idevicerestore="${idevicerestore}_bionic"
-        fi
 
     elif [[ $OSTYPE == "darwin"* ]]; then
         macver=${1:-$(sw_vers -productVersion)}
         platform="macos"
-        ideviceenterrecovery="resources/libimobiledevice/ideviceenterrecovery"
-        ideviceinfo="resources/libimobiledevice/ideviceinfo"
-        idevicerestore="resources/tools/idevicerestore_macos"
-        iproxy="resources/libimobiledevice/iproxy"
-        irecovery="resources/libimobiledevice/irecovery"
-        irecoverychk=$irecovery
-        partialzip="resources/tools/partialzip_macos"
-        tsschecker="resources/tools/tsschecker_macos"
-        cherry="resources/ch3rryflower/Tools/macos/UNTETHERED"
+    
+        cherry="./resources/ch3rryflower/Tools/macos/UNTETHERED"
+        idevicerestore="./resources/tools/idevicerestore_macos"
         pwnedDFU="$cherry/pwnedDFU"
     fi
+    ideviceenterrecovery="./resources/libimobiledevice_$platform/ideviceenterrecovery"
+    ideviceinfo="./resources/libimobiledevice_$platform/ideviceinfo"
+    iproxy="./resources/libimobiledevice_$platform/iproxy"
+    irecoverychk="./resources/libimobiledevice_$platform/irecovery"
+    irecovery="$irecoverychk"
+    [[ $platform == "linux" ]] && irecovery="sudo $irecovery"
+    partialzip="./resources/tools/partialzip_$platform"
+    tsschecker="resources/tools/tsschecker_$platform"
     
     [[ ! -d resources ]] && Error "resources folder cannot be found. Replace resources folder and try again" "If resources folder is present try removing spaces from path/folder name"
     [[ ! $platform ]] && Error "Platform unknown/not supported."
     chmod +x resources/tools/*
     [ $? == 1 ] && Log "An error occurred in chmod. This might cause problems..."
-    [[ ! $(ping -c1 8.8.8.8 2>/dev/null) ]] && Error "Please check your Internet connection before proceeding."
+    [[ ! $(ping -c1 1.1.1.1 2>/dev/null) ]] && Error "Please check your Internet connection before proceeding."
     [[ $(uname -m) != 'x86_64' ]] && Error "Only x86_64 distributions are supported. Use a 64-bit distro and try again"
     
     if [[ $1 == Install ]] || [ ! $(which $irecoverychk) ] ||
        [[ ! $(which bspatch) ]] || [ ! $(which $ideviceinfo) ]; then
-        InstallDependencies
+        InstallDepends
     fi
     
     if [[ ! -d resources/ch3rryflower ]]; then
@@ -94,8 +86,7 @@ Main() {
         cd ..
     fi
     
-    Echo "* Platform: $platform $macver"
-    Echo "* UniqueChipID (ECID): $UniqueChipID"
+    Log "Running on platform: $platform $macver"
     echo
     Log "Finding device in normal mode..."
     ideviceinfo2=$($ideviceinfo -s)
@@ -159,7 +150,7 @@ Main() {
             case $opt in
                 "Downgrade device" ) Mode='Downgrade'; break;;
                 "Disable/Enable exploit" ) Mode='Remove4'; break;;
-                "(Re-)Install Dependencies" ) InstallDependencies;;
+                "(Re-)Install Dependencies" ) InstallDepends;;
                 * ) exit;;
             esac
         done
@@ -484,7 +475,7 @@ iOS4Fix() {
     cd ../..
 }
 
-InstallDependencies() {
+InstallDepends() {
     mkdir tmp 2>/dev/null
     cd resources
     rm -rf lib/* libimobiledevice* libirecovery
@@ -495,19 +486,14 @@ InstallDependencies() {
         # Arch
         sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl expect libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
     
-    elif [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $UBUNTU_CODENAME == "focal" ]] ||
-         [[ $UBUNTU_CODENAME == "groovy" ]] || [[ $UBUNTU_CODENAME == "hirsute" ]] ||
-         [[ $VERSION == "10 (buster)" ]] || [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
+    elif [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]] ||
+         [[ $UBUNTU_CODENAME == "hirsute" ]] || [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
         # Ubuntu, Debian
-        [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository universe
+        [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository -y universe
         sudo apt update
-        sudo apt install -y autoconf automake bsdiff build-essential curl expect git libglib2.0-dev libimobiledevice6 libimobiledevice-utils libreadline-dev libtool-bin libusb-1.0-0-dev libusbmuxd-tools openssh-client usbmuxd usbutils xmlstarlet xxd
+        sudo apt install -y bsdiff curl expect git libimobiledevice6 openssh-client usbmuxd usbutils xmlstarlet xxd
         SavePkg
-        if [[ $UBUNTU_CODENAME == "bionic" ]] || [[ $VERSION == "10 (buster)" ]]; then
-            cp libzip.so.5 ../resources/lib
-            SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/tools_linux_bionic.zip tools_linux_bionic.zip 959abbafacfdaddf87dd07683127da1dab6c835f
-            unzip tools_linux_bionic.zip -d ../resources/tools
-        elif [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]] || [[ $UBUNTU_CODENAME == "hirsute" ]]; then
+        if [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]] || [[ $UBUNTU_CODENAME == "hirsute" ]]; then
             cp libzip.so.5 ../resources/lib
         else
             sudo apt install -y libzip5
@@ -518,44 +504,36 @@ InstallDependencies() {
             ln -sf /usr/lib/x86_64-linux-gnu/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
         fi
     
-    elif [[ $ID == "fedora" ]]; then
+    elif [[ $ID == "fedora" ]] && (( $VERSION_ID <= 33 )); then
         # Fedora
-        sudo dnf install -y automake binutils bsdiff expect git libimobiledevice-utils libtool libusb-devel libusbmuxd-utils make libzip perl-Digest-SHA readline-devel vim-common xmlstarlet
+        sudo dnf install -y bsdiff expect git libimobiledevice libzip perl-Digest-SHA vim-common xmlstarlet
         SavePkg
-        if (( $VERSION_ID <= 32 )); then
-            ln -sf /usr/lib64/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
-            ln -sf /usr/lib64/libplist.so.3 ../resources/lib/libplist-2.0.so.3
-            ln -sf /usr/lib64/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
-        fi
     
-    elif [[ $ID == "opensuse-tumbleweed" ]] || [[ $PRETTY_NAME == "openSUSE Leap 15.2" ]]; then
+    elif [[ $ID == "opensuse-tumbleweed" ]]; then
         # openSUSE
-        [[ $ID == "opensuse-tumbleweed" ]] && iproxy="libusbmuxd-tools" || iproxy="iproxy libzip5"
-        sudo zypper -n in automake bsdiff expect gcc git imobiledevice-tools $iproxy libimobiledevice libusb-1_0-devel libtool make readline-devel vim xmlstarlet
-        ln -sf /usr/lib64/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
-        ln -sf /usr/lib64/libplist.so.3 ../resources/lib/libplist-2.0.so.3
-        ln -sf /usr/lib64/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
-        ln -sf /usr/lib64/libzip.so.5 ../resources/lib/libzip.so.4
+        sudo zypper -n in bsdiff expect git libimobiledevice vim xmlstarlet
     
     elif [[ $OSTYPE == "darwin"* ]]; then
         # macOS
-        #imobiledevicenet=$(curl -s https://api.github.com/repos/libimobiledevice-win32/imobiledevice-net/releases/latest | grep browser_download_url | cut -d '"' -f 4 | awk '/osx-x64/ {print $1}')
         xcode-select --install
-        #curl -L $imobiledevicenet -o libimobiledevice.zip
-        SaveFile https://github.com/libimobiledevice-win32/imobiledevice-net/releases/download/v1.3.14/libimobiledevice.1.2.1-r1116-osx-x64.zip libimobiledevice.zip 328e809dea350ae68fb644225bbf8469c0f0634b
+        libimobiledevice=("https://github.com/libimobiledevice-win32/imobiledevice-net/releases/download/v1.3.14/libimobiledevice.1.2.1-r1116-osx-x64.zip" "328e809dea350ae68fb644225bbf8469c0f0634b")
         
     else
         Error "Distro not detected/supported by the install script." "See the repo README for supported OS versions/distros"
     fi
     
-    if [[ $platform == linux ]]; then
-        Compile LukeZGD libirecovery
-        ln -sf ../libirecovery/lib/libirecovery.so.3 ../resources/lib/libirecovery-1.0.so.3
-        ln -sf ../libirecovery/lib/libirecovery.so.3 ../resources/lib/libirecovery.so.3
-    else
-        mkdir ../resources/libimobiledevice
-        unzip libimobiledevice.zip -d ../resources/libimobiledevice
-        chmod +x ../resources/libimobiledevice/*
+    if [[ $platform == "linux" ]]; then
+        libimobiledevice=("https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/libimobiledevice_linux.zip" "4344b3ca95d7433d5a49dcacc840d47770ba34c4")
+    fi
+    
+    if [[ ! -d ../resources/libimobiledevice_$platform ]]; then
+        SaveFile ${libimobiledevice[0]} libimobiledevice.zip ${libimobiledevice[1]}
+        mkdir ../resources/libimobiledevice_$platform
+        unzip libimobiledevice.zip -d ../resources/libimobiledevice_$platform
+        chmod +x ../resources/libimobiledevice_$platform/*
+    fi
+    
+    if [[ $platform == "macos" ]]; then
         Echo "* macOS device detected. For macOS, it is recommended to use cherryflowerJB instead as this script is mostly aimed for Linux users"
         Echo "* If you still want to use this, you need to have Homebrew installed, and install libpng using 'brew install libpng'"
         Echo "* There may be other dependencies needed but I haven't tested it"
@@ -563,15 +541,6 @@ InstallDependencies() {
     
     Log "Install script done! Please run the script again to proceed"
     exit
-}
-
-Compile() {
-    git clone --depth 1 https://github.com/$1/$2.git
-    cd $2
-    ./autogen.sh --prefix="$(cd ../.. && pwd)/resources/$2"
-    make install
-    cd ..
-    sudo rm -rf $2
 }
 
 SaveFile() {
