@@ -299,8 +299,8 @@ Remove4() {
     $irecovery -c "saveenv"
     $irecovery -c "reset"
     Log "Done!"
-    Echo "* If disabling the exploit did not work and the device is getting stuck after restore, \
-    you may try another method for clearing NVRAM. See the README for more details"
+    Echo "* If disabling the exploit did not work and the device is getting stuck after restore:"
+    Echo "* You may try another method for clearing NVRAM. See the README for more details"
 }
 
 Downgrade() {
