@@ -484,14 +484,14 @@ InstallDepends() {
     Log "Installing dependencies..."
     if [[ $ID == "arch" ]] || [[ $ID_LIKE == "arch" ]]; then
         # Arch
-        sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl expect libimobiledevice libusbmuxd libzip openssh unzip usbmuxd usbutils vim xmlstarlet
+        sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl expect libimobiledevice libusbmuxd libzip unzip usbmuxd usbutils vim xmlstarlet
     
     elif [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]] ||
          [[ $UBUNTU_CODENAME == "hirsute" ]] || [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
         # Ubuntu, Debian
         [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository -y universe
         sudo apt update
-        sudo apt install -y bsdiff curl expect git libimobiledevice6 openssh-client usbmuxd usbutils xmlstarlet xxd
+        sudo apt install -y bsdiff curl expect git libimobiledevice6 usbmuxd usbutils xmlstarlet xxd
         SavePkg
         if [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]] || [[ $UBUNTU_CODENAME == "hirsute" ]]; then
             cp libzip.so.5 ../resources/lib
@@ -511,7 +511,7 @@ InstallDepends() {
     
     elif [[ $ID == "opensuse-tumbleweed" ]]; then
         # openSUSE
-        sudo zypper -n in bsdiff expect git libimobiledevice vim xmlstarlet
+        sudo zypper -n in bsdiff curl expect git libimobiledevice-1_0-6 libzip5 vim xmlstarlet
     
     elif [[ $OSTYPE == "darwin"* ]]; then
         # macOS
