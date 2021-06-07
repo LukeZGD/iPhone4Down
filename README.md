@@ -36,12 +36,12 @@
 6. Follow instructions
 
 ## Supported OS versions/distros:
-- **Ubuntu** [20.04](https://releases.ubuntu.com/focal/), [20.10](https://releases.ubuntu.com/groovy/), [21.04](https://releases.ubuntu.com/hirsute/); and Ubuntu-based distros like [Linux Mint](https://www.linuxmint.com/)
+- [**Ubuntu**](https://ubuntu.com/) 20.04 and newer, and Ubuntu-based distros like [Linux Mint](https://www.linuxmint.com/)
 - [**Arch Linux**](https://www.archlinux.org/) and Arch-based distros like [EndeavourOS](https://endeavouros.com/)
-- [**Fedora** 33 to 34](https://getfedora.org/)
-- [**Debian** Testing, Unstable](https://www.debian.org/)
-- **openSUSE** [Tumbleweed](https://software.opensuse.org/distributions/tumbleweed), [Leap 15.2](https://software.opensuse.org/distributions/leap)
-- **macOS** 10.13 to 11
+- [**Fedora**](https://getfedora.org/) 33 and newer
+- [**Debian**](https://www.debian.org/) Testing and Unstable
+- [**openSUSE**](https://www.opensuse.org/) Tumbleweed and Leap 15.3
+- **macOS** 10.13 and newer
 
 ## Tools and other stuff used by this script:
 - [ch3rryflower by dora2iOS](https://github.com/dora2-iOS/ch3rryflower/tree/316d2cdc5351c918e9db9650247b91632af3f11f)

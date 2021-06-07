@@ -41,14 +41,15 @@ Main() {
     if [[ $OSTYPE == "linux"* ]]; then
         . /etc/os-release 2>/dev/null
         platform="linux"
+        platformver="$PRETTY_NAME"
     
         cherry="./resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
         idevicerestore="sudo LD_LIBRARY_PATH=./resources/lib ./resources/tools/idevicerestore_linux"
         pwnedDFU="sudo $cherry/pwnedDFU"
 
     elif [[ $OSTYPE == "darwin"* ]]; then
-        macver=${1:-$(sw_vers -productVersion)}
         platform="macos"
+        platformver="${1:-$(sw_vers -productVersion)}"
     
         cherry="./resources/ch3rryflower/Tools/macos/UNTETHERED"
         idevicerestore="./resources/tools/idevicerestore_macos"
@@ -59,7 +60,7 @@ Main() {
     iproxy="./resources/libimobiledevice_$platform/iproxy"
     irecoverychk="./resources/libimobiledevice_$platform/irecovery"
     irecovery="$irecoverychk"
-    [[ $platform == "linux" ]] && irecovery="sudo $irecovery"
+    [[ $platform == "linux" ]] && irecovery="sudo LD_LIBRARY_PATH=./resources/lib $irecovery"
     partialzip="./resources/tools/partialzip_$platform"
     tsschecker="resources/tools/tsschecker_$platform"
     
@@ -86,7 +87,7 @@ Main() {
         cd ..
     fi
     
-    Log "Running on platform: $platform $macver"
+    Log "Running on platform: $platform ($platformver)"
     echo
     Log "Finding device in normal mode..."
     ideviceinfo2=$($ideviceinfo -s)
@@ -483,38 +484,34 @@ InstallDepends() {
     
     Log "Installing dependencies..."
     if [[ $ID == "arch" ]] || [[ $ID_LIKE == "arch" ]]; then
-        # Arch
         sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl expect libimobiledevice libusbmuxd libzip unzip usbmuxd usbutils vim xmlstarlet
     
-    elif [[ $UBUNTU_CODENAME == "focal" ]] || [[ $UBUNTU_CODENAME == "groovy" ]] ||
-         [[ $UBUNTU_CODENAME == "hirsute" ]] || [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
-        # Ubuntu, Debian
+    elif [[ ! -z $UBUNTU_CODENAME && $VERSION_ID == "2"* ]] ||
+         [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
         [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository -y universe
         sudo apt update
         sudo apt install -y bsdiff curl expect git libimobiledevice6 usbmuxd usbutils xmlstarlet xxd
         SavePkg
-        if [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]] || [[ $UBUNTU_CODENAME == "hirsute" ]]; then
+        if [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]] || [[ $VERSION_ID != "20"* ]]; then
             cp libzip.so.5 ../resources/lib
         else
             sudo apt install -y libzip5
         fi
-        if [[ $UBUNTU_CODENAME == "focal" ]]; then
-            ln -sf /usr/lib/x86_64-linux-gnu/libimobiledevice.so.6 ../resources/lib/libimobiledevice-1.0.so.6
-            ln -sf /usr/lib/x86_64-linux-gnu/libplist.so.3 ../resources/lib/libplist-2.0.so.3
-            ln -sf /usr/lib/x86_64-linux-gnu/libusbmuxd.so.6 ../resources/lib/libusbmuxd-2.0.so.6
-        fi
     
     elif [[ $ID == "fedora" ]] && (( $VERSION_ID <= 33 )); then
-        # Fedora
         sudo dnf install -y bsdiff expect git libimobiledevice libzip perl-Digest-SHA vim-common xmlstarlet
         SavePkg
     
-    elif [[ $ID == "opensuse-tumbleweed" ]]; then
-        # openSUSE
-        sudo zypper -n in bsdiff curl expect git libimobiledevice-1_0-6 libzip5 vim xmlstarlet
+    elif [[ $ID == "opensuse-tumbleweed" || $PRETTY_NAME == "openSUSE Leap 15.3" ]]; then
+        if [[ $ID == "opensuse-tumbleweed" ]]; then
+            libimobiledevice="libimobiledevice-1_0-6"
+        else
+            libimobiledevice="libimobiledevice6"
+            ln -sf /lib64/libreadline.so.7 ../resources/lib/libreadline.so.8
+        fi
+        sudo zypper -n in bsdiff curl expect git $libimobiledevice libzip5 vim xmlstarlet
     
     elif [[ $OSTYPE == "darwin"* ]]; then
-        # macOS
         xcode-select --install
         libimobiledevice=("https://github.com/libimobiledevice-win32/imobiledevice-net/releases/download/v1.3.14/libimobiledevice.1.2.1-r1116-osx-x64.zip" "328e809dea350ae68fb644225bbf8469c0f0634b")
         
