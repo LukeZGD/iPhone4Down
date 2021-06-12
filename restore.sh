@@ -99,8 +99,10 @@ Main() {
     [[ $irecovery2 == "Recovery" ]] && RecoveryDevice=1
     
     if [[ $DFUDevice == 1 ]] || [[ $RecoveryDevice == 1 ]]; then
-        ProductType=$($irecovery -q | grep 'PTYP' | cut -c 7-)
-        [ ! $ProductType ] && read -p "[Input] Enter ProductType (eg. iPhone3,1): " ProductType
+        ProdCut=7
+        ProductType=$($irecovery -qv 2>&1 | grep "iP" | cut -c 14-)
+        [[ $(echo $ProductType | cut -c 3) == 'h' ]] && ProdCut=9
+        ProductType=$(echo $ProductType | cut -c -$ProdCut)
         UniqueChipID=$((16#$(echo $($irecovery -q | grep 'ECID' | cut -c 7-) | cut -c 3-)))
     else
         ProductType=$(echo "$ideviceinfo2" | grep 'ProductType' | cut -c 14-)
@@ -125,7 +127,7 @@ Main() {
     if [[ $DFUDevice != 1 ]] && [[ $RecoveryDevice != 1 ]]; then
         Log "Device in normal mode detected."
         Echo "* The device needs to be in recovery/DFU mode before proceeding."
-        read -p "$(Input 'Send device to recovery mode? (y/N): ')" Jailbroken
+        read -p "$(Input 'Send device to recovery mode? (y/N):')" Jailbroken
         if [[ $Jailbroken == y ]] || [[ $Jailbroken == Y ]]; then
             Recovery
         else
@@ -220,7 +222,7 @@ SelectVersion() {
 Action() {
     Log "Option: $Mode"
     if [[ $Mode == 'Downgrade' ]] && [[ $OSVer != 7.1* ]]; then
-        read -p "$(Input 'Jailbreak the selected iOS version? (y/N): ')" Jailbreak
+        read -p "$(Input 'Jailbreak the selected iOS version? (y/N):')" Jailbreak
         [[ $Jailbreak == y ]] || [[ $Jailbreak == Y ]] && Jailbreak=1
     fi
 
@@ -239,7 +241,7 @@ Recovery() {
         done
     fi
     Log "Device in recovery mode detected. Get ready to enter DFU mode"
-    read -p "$(Input 'Select Y to continue, N to exit recovery (Y/n) ')" RecoveryDFU
+    read -p "$(Input 'Select Y to continue, N to exit recovery (Y/n)')" RecoveryDFU
     if [[ $RecoveryDFU == n ]] || [[ $RecoveryDFU == N ]]; then
         Log "Exiting recovery mode."
         $irecovery -n
@@ -425,7 +427,7 @@ Downgrade() {
     if [[ ! -e $IPSWCustom.ipsw ]]; then
         Echo "* By default, memory option is set to Y, you may select N later if you encounter problems"
         Echo "* If it doesn't work with both, you might not have enough RAM or tmp storage"
-        read -p "$(Input 'Memory option? (press Enter/Return if unsure) (Y/n): ')" JBMemory
+        read -p "$(Input 'Memory option? (press Enter/Return if unsure) (Y/n):')" JBMemory
         [[ $JBMemory != n ]] && [[ $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW with ch3rryflower..."
         sed -z -i "s|\n../bin|\n../$cherry/bin|g" $cherry/make_iBoot.sh
@@ -443,7 +445,13 @@ Downgrade() {
     unzip -q $IPSW.ipsw -d $IPSW/
     Log "Proceeding to idevicerestore... (Enter root password of your PC/Mac when prompted)"
     [[ $platform == macos ]] && sudo codesign --sign - --force --deep $idevicerestore
-    $idevicerestore -y -e -w $IPSW.ipsw
+    $idevicerestore -yew $IPSW.ipsw
+    if [[ $platform == "macos" && $? != 0 ]]; then
+        Log "An error seems to have occurred when running idevicerestore."
+        Echo "* If this is the \"Killed: 9\" error or similar, try these steps:"
+        Echo "* Using Terminal, cd to where the script is located, then run"
+        Echo "* sudo codesign --sign - --force --deep resources/tools/idevicerestore_macos"
+    fi
     Log "Restoring done!"
     Log "Downgrade script done!"
 }
