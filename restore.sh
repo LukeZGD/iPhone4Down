@@ -1,6 +1,8 @@
 #!/bin/bash
-trap 'Clean; exit' INT TERM EXIT
-if [[ $1 != 'NoColor' ]] && [[ $2 != 'NoColor' ]]; then
+trap "Clean" EXIT
+trap "Clean; exit 1" INT TERM
+
+if [[ $1 != "NoColor" ]] && [[ $2 != "NoColor" ]]; then
     Color_R=$(tput setaf 9)
     Color_G=$(tput setaf 10)
     Color_B=$(tput setaf 12)
@@ -20,7 +22,7 @@ Error() {
     echo -e "\n${Color_R}[Error] $1 ${Color_N}"
     [[ ! -z $2 ]] && echo "${Color_R}* $2 ${Color_N}"
     echo
-    exit
+    exit 1
 }
 
 Input() {
@@ -42,7 +44,7 @@ Main() {
         . /etc/os-release 2>/dev/null
         platform="linux"
         platformver="$PRETTY_NAME"
-    
+        bspatch="$(which bspatch)"
         cherry="./resources/ch3rryflower/Tools/ubuntu/UNTETHERED"
         idevicerestore="sudo LD_LIBRARY_PATH=./resources/lib ./resources/tools/idevicerestore_linux"
         pwnedDFU="sudo $cherry/pwnedDFU"
@@ -50,7 +52,7 @@ Main() {
     elif [[ $OSTYPE == "darwin"* ]]; then
         platform="macos"
         platformver="${1:-$(sw_vers -productVersion)}"
-    
+        bspatch="/usr/bin/bspatch"
         cherry="./resources/ch3rryflower/Tools/macos/UNTETHERED"
         idevicerestore="./resources/tools/idevicerestore_macos"
         pwnedDFU="$cherry/pwnedDFU"
@@ -64,15 +66,29 @@ Main() {
     partialzip="./resources/tools/partialzip_$platform"
     tsschecker="resources/tools/tsschecker_$platform"
     
-    [[ ! -d resources ]] && Error "resources folder cannot be found. Replace resources folder and try again" "If resources folder is present try removing spaces from path/folder name"
-    [[ ! $platform ]] && Error "Platform unknown/not supported."
-    chmod +x resources/tools/*
-    [ $? == 1 ] && Log "An error occurred in chmod. This might cause problems..."
-    [[ ! $(ping -c1 1.1.1.1 2>/dev/null) ]] && Error "Please check your Internet connection before proceeding."
-    [[ $(uname -m) != 'x86_64' ]] && Error "Only x86_64 distributions are supported. Use a 64-bit distro and try again"
+    if [[ ! $platform ]]; then
+        Error "Platform unknown/not supported."
+    fi
     
-    if [[ $1 == Install ]] || [ ! $(which $irecoverychk) ] ||
-       [[ ! $(which bspatch) ]] || [ ! $(which $ideviceinfo) ]; then
+    if [[ ! -d ./resources ]]; then
+        Error "resources folder cannot be found. Replace resources folder and try again" \
+        "If resources folder is present try removing spaces from path/folder name"
+    fi
+    
+    chmod +x ./resources/*.sh ./resources/tools/*
+    if [[ $? == 1 ]]; then
+        Log "Warning - An error occurred in chmod. This might cause problems..."
+    fi
+    
+    if [[ ! $(ping -c1 1.1.1.1 2>/dev/null) ]]; then
+        Error "Please check your Internet connection before proceeding."
+    fi
+    
+    if [[ $(uname -m) != "x86_64" ]]; then
+        Error "Only 64-bit (x86_64) distributions are supported."
+    fi
+    
+    if [[ $1 == Install || ! $(which $irecoverychk) || ! $(which $bspatch) || ! $(which $ideviceinfo) ]]; then
         InstallDepends
     fi
     
@@ -131,7 +147,7 @@ Main() {
         if [[ $Jailbroken == y ]] || [[ $Jailbroken == Y ]]; then
             Recovery
         else
-            exit
+            exit 0
         fi
     elif [[ $RecoveryDevice == 1 ]]; then
         Recovery
@@ -154,7 +170,7 @@ Main() {
                 "Downgrade device" ) Mode='Downgrade'; break;;
                 "Disable/Enable exploit" ) Mode='Remove4'; break;;
                 "(Re-)Install Dependencies" ) InstallDepends;;
-                * ) exit;;
+                * ) exit 0;;
             esac
         done
     fi
@@ -175,7 +191,7 @@ SelectVersion() {
             "More versions (5.0-6.1.2)" ) OSVer='More'; break;;
             "4.3.x (untested)" ) OSVer='4.3.x'; break;;
             "7.x (not working)" ) OSVer='7.x'; break;;
-            *) exit;;
+            *) exit 0;;
         esac
     done
     if [[ $OSVer == 'More' ]]; then
@@ -188,7 +204,7 @@ SelectVersion() {
                 "5.1" ) OSVer='5.1'; BuildVer='9B176'; break;;
                 "5.0.1" ) OSVer='5.0.1'; BuildVer='9A405'; break;;
                 "5.0" ) OSVer='5.0'; BuildVer='9A334'; break;;
-                *) exit;;
+                *) exit 0;;
             esac
         done
     elif [[ $OSVer == '4.3.x' ]]; then
@@ -198,7 +214,7 @@ SelectVersion() {
                 "4.3.5" ) OSVer='4.3.5'; BuildVer='8L1'; break;;
                 "4.3.3" ) OSVer='4.3.3'; BuildVer='8J2'; break;;
                 "4.3" ) OSVer='4.3'; BuildVer='8F190'; break;;
-                *) exit;;
+                *) exit 0;;
             esac
         done
     elif [[ $OSVer == '7.x' ]]; then
@@ -212,7 +228,7 @@ SelectVersion() {
                 "7.0.3" ) OSVer='7.0.3'; BuildVer='11B511'; break;;
                 "7.0.2" ) OSVer='7.0.2'; BuildVer='11A501'; break;;
                 "7.0" ) OSVer='7.0'; BuildVer='11A465'; break;;
-                *) exit;;
+                *) exit 0;;
             esac
         done
     fi
@@ -245,7 +261,7 @@ Recovery() {
     if [[ $RecoveryDFU == n ]] || [[ $RecoveryDFU == N ]]; then
         Log "Exiting recovery mode."
         $irecovery -n
-        exit
+        exit 0
     fi
     Echo "* Hold POWER and HOME button for 10 seconds."
     for i in {10..01}; do
@@ -278,7 +294,7 @@ Remove4() {
         case $opt in
             "Disable exploit" ) Rec=0; break;;
             "Enable exploit" ) Rec=2; break;;
-            * ) exit;;
+            * ) exit 0;;
         esac
     done
     if [ ! -e saved/iBSS_8L1 ]; then
@@ -291,7 +307,7 @@ Remove4() {
         cp saved/iBSS_8L1 tmp/iBSS
     fi
     Log "Patching iBSS..."
-    bspatch tmp/iBSS tmp/pwnediBSS resources/patches/iBSS.n90ap.8L1.patch
+    $bspatch tmp/iBSS tmp/pwnediBSS resources/patches/iBSS.n90ap.8L1.patch
     Log "Booting iBSS..."
     $pwnedDFU -f tmp/pwnediBSS
     sleep 2
@@ -307,7 +323,7 @@ Remove4() {
 }
 
 Downgrade() {
-    [[ $Jailbreak == 1 ]] && Custom="CustomJB" || Custom="Custom"
+    [[ $Jailbreak == 1 ]] && Custom="Custom" || Custom="CustomW"
     IPSW="iPhone3,1_${OSVer}_${BuildVer}_Restore"
     IPSWCustom="iPhone3,1_${OSVer}_${BuildVer}_${Custom}"
     IPSW7="iPhone3,1_7.1.2_11D257_Restore"
@@ -498,7 +514,7 @@ InstallDepends() {
          [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]]; then
         [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository -y universe
         sudo apt update
-        sudo apt install -y bsdiff curl expect git libimobiledevice6 usbmuxd usbutils xmlstarlet xxd
+        sudo apt install -y bsdiff curl expect libimobiledevice6 usbmuxd usbutils xmlstarlet xxd
         SavePkg
         if [[ $PRETTY_NAME == "Debian GNU/Linux bullseye/sid" ]] || [[ $VERSION_ID != "20"* ]]; then
             cp libzip.so.5 ../resources/lib
@@ -507,7 +523,7 @@ InstallDepends() {
         fi
     
     elif [[ $ID == "fedora" ]] && (( $VERSION_ID <= 33 )); then
-        sudo dnf install -y bsdiff expect git libimobiledevice libzip perl-Digest-SHA vim-common xmlstarlet
+        sudo dnf install -y bsdiff expect libimobiledevice libzip perl-Digest-SHA vim-common xmlstarlet
         SavePkg
     
     elif [[ $ID == "opensuse-tumbleweed" || $PRETTY_NAME == "openSUSE Leap 15.3" ]]; then
@@ -517,7 +533,7 @@ InstallDepends() {
             libimobiledevice="libimobiledevice6"
             ln -sf /lib64/libreadline.so.7 ../resources/lib/libreadline.so.8
         fi
-        sudo zypper -n in bsdiff curl expect git $libimobiledevice libzip5 vim xmlstarlet
+        sudo zypper -n in bsdiff curl expect $libimobiledevice libzip5 vim xmlstarlet
     
     elif [[ $OSTYPE == "darwin"* ]]; then
         xcode-select --install
@@ -545,7 +561,7 @@ InstallDepends() {
     fi
     
     Log "Install script done! Please run the script again to proceed"
-    exit
+    exit 0
 }
 
 SaveFile() {
