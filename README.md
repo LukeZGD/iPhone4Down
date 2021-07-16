@@ -10,6 +10,7 @@
 - **You do NOT need blobs to use this**, the script will get the needed 7.1.2 blobs for you
 - 8GB models may not work with downgrades below iOS 6
 - Newer models may not work with downgrades below iOS 5
+- Use an Intel PC/Mac as entering pwnDFU may be a lot more unreliable on AMD devices
 - If you want to go back and restore to iOS 7.1.2, you need to disable the exploit
     - From the menu, select "Disable/Enable exploit" > "Disable exploit" while device is in DFU mode
     - If disabling the exploit did not work, [try these steps](https://github.com/LukeZGD/iPhone4Down/issues/3#issuecomment-841622695)
