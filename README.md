@@ -6,6 +6,7 @@
   - Windows users can create a Linux live USB (see Requirements)
   - macOS users should use [cherryflowerJB](https://dora2ios.web.app/CFJB/) instead for more support
 - **This supports the iPhone 4 GSM (iPhone3,1) only**
+- iPhone4Down will not and cannot be updated for iPhone3,3 support. Look forward to updates for [powdersn0w](https://dora2ios.web.app/konayuki/index.html) instead
 - The downgrades have the option to jailbreak
 - **You do NOT need blobs to use this**, the script will get the needed 7.1.2 blobs for you
 - 8GB models may not work with downgrades below iOS 6
