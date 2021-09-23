@@ -65,6 +65,7 @@ Main() {
     ideviceenterrecovery="./resources/libimobiledevice_$platform/ideviceenterrecovery"
     ideviceinfo="./resources/libimobiledevice_$platform/ideviceinfo"
     iproxy="./resources/libimobiledevice_$platform/iproxy"
+    ipsw="./resources/tools/ipsw_$platform"
     irecoverychk="./resources/libimobiledevice_$platform/irecovery"
     irecovery="$irecoverychk"
     [[ $platform == "linux" ]] && irecovery="sudo LD_LIBRARY_PATH=./resources/lib $irecovery"
@@ -167,14 +168,14 @@ Main() {
     if [[ $1 ]] && [[ $1 != 'NoColor' ]]; then
         Mode="$1"
     else
-        [[ $pwnDFUDevice == 1 ]] && Selection=("Downgrade device")
-        Selection+=("Disable/Enable exploit" "(Re-)Install Dependencies" "(Any other key to exit)")
+        Selection=("Downgrade device" "Disable/Enable exploit" "Restore to 7.1.2" "(Re-)Install Dependencies" "(Any other key to exit)")
         Echo "*** Main Menu ***"
         Input "Select an option:"
         select opt in "${Selection[@]}"; do
             case $opt in
                 "Downgrade device" ) Mode='Downgrade'; break;;
                 "Disable/Enable exploit" ) Mode='Remove4'; break;;
+                "Restore to 7.1.2" ) Mode='Restore712'; break;;
                 "(Re-)Install Dependencies" ) InstallDepends;;
                 * ) exit 0;;
             esac
@@ -184,9 +185,16 @@ Main() {
 }
 
 SelectVersion() {
-    Selection=("6.1.3" "5.1.1 (9B208)" "5.1.1 (9B206)" "More versions (5.0-6.1.2)" "4.3.x (untested)" "7.x (not working)")
+    Selection=("6.1.3" "5.1.1 (9B208)" "5.1.1 (9B206)" "More versions (5.0-6.1.2)" "4.3.x (not supported)" "7.x (not supported)")
     Selection2=("6.1.2" "6.1" "6.0.1" "6.0" "5.1" "5.0.1" "5.0")
     Selection3=("7.1.1" "7.1" "7.0.6" "7.0.4" "7.0.3" "7.0.2" "7.0")
+    if [[ $Mode == 'Restore712' ]]; then
+        Echo "* Make sure to disable the exploit first! See the README for more details."
+        Input "Press Enter/Return to continue (or press Ctrl+C to cancel)"
+        read -s
+        OSVer='7.1.2'
+        BuildVer='11D257'
+    fi
     [[ $Mode != 'Downgrade' ]] && Action
     Input "Select iOS version:"
     select opt in "${Selection[@]}"; do
@@ -195,8 +203,8 @@ SelectVersion() {
             "5.1.1 (9B208)" ) OSVer='5.1.1'; BuildVer='9B208'; break;;
             "5.1.1 (9B206)" ) OSVer='5.1.1'; BuildVer='9B206'; break;;
             "More versions (5.0-6.1.2)" ) OSVer='More'; break;;
-            "4.3.x (untested)" ) OSVer='4.3.x'; break;;
-            "7.x (not working)" ) OSVer='7.x'; break;;
+            "4.3.x (not supported)" ) OSVer='4.3.x'; break;;
+            "7.x (not supported)" ) OSVer='7.x'; break;;
             *) exit 0;;
         esac
     done
@@ -243,12 +251,12 @@ SelectVersion() {
 
 Action() {
     Log "Option: $Mode"
-    if [[ $Mode == 'Downgrade' ]] && [[ $OSVer != 7.1* ]]; then
-        read -p "$(Input 'Jailbreak the selected iOS version? (y/N):')" Jailbreak
-        [[ $Jailbreak == y ]] || [[ $Jailbreak == Y ]] && Jailbreak=1
+    if [[ $Mode == 'Downgrade' || $Mode == 'Restore712' ]]; then
+        read -p "$(Input 'Jailbreak the selected iOS version? (Y/n):')" Jailbreak
+        [[ $Jailbreak != n || $Jailbreak != N ]] && Jailbreak=1
     fi
 
-    [[ $Mode == 'Downgrade' ]] && Downgrade
+    [[ $Mode == 'Downgrade' || $Mode == 'Restore712' ]] && Downgrade
     [[ $Mode == 'Remove4' ]] && Remove4
     exit
 }
@@ -426,9 +434,12 @@ Downgrade() {
     fi
     
     if [[ $Jailbreak == 1 ]]; then
-        if [[ $OSVer == 7.* ]]; then
-            JBFiles=(Cydia6.tar evasi0n7-untether.tar)
-            JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
+        if [[ $OSVer == 7.1.2 ]]; then
+            JBFiles=(Cydia7.tar panguaxe.tar fstab7.tar)
+            JBSHA1=bba5022d6749097f47da48b7bdeaa3dc67cbf2c4
+        elif [[ $OSVer == 7.* ]]; then
+            JBFiles=(Cydia7.tar evasi0n7-untether.tar fstab7.tar)
+            JBSHA1=bba5022d6749097f47da48b7bdeaa3dc67cbf2c4
         elif [[ $OSVer == 6.1.3 ]]; then
             JBFiles=(Cydia6.tar p0sixspwn.tar)
             JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
@@ -439,7 +450,7 @@ Downgrade() {
             JBFiles=(Cydia5.tar unthredeh4il.tar)
             JBSHA1=f5b5565640f7e31289919c303efe44741e28543a
         fi
-        JBFiles+=(resources/jailbreak/fstab_rw.tar)
+        [[ $OSVer != 7.* ]] && JBFiles+=(fstab_rw.tar)
         if [[ ! -e resources/jailbreak/${JBFiles[0]} ]]; then
             Log "Downloaading jailbreak files..."
             cd tmp
@@ -447,7 +458,7 @@ Downgrade() {
             cp ${JBFiles[0]} ../resources/jailbreak
             cd ..
         fi
-        for i in {0..1}; do
+        for i in {0..2}; do
             JBFiles[$i]=resources/jailbreak/${JBFiles[$i]}
         done
     fi
@@ -468,9 +479,21 @@ Downgrade() {
     mv $SHSH shsh/${UniqueChipID}-${ProductType}-${OSVer}.shsh
     
     [[ $OSVer == 4.3* ]] && IPSWCustom=$IPSWCustom-$UniqueChipID
-    if [[ ! -e $IPSWCustom.ipsw ]]; then
-        Echo "* By default, memory option is set to Y, you may select N later if you encounter problems"
-        Echo "* If it doesn't work with both, you might not have enough RAM or tmp storage"
+    if [[ ! -e $IPSWCustom.ipsw && $Mode == 'Restore712' ]]; then
+        Echo "* By default, memory option is set to Y."
+        Echo "* Make sure that you have at least 8GB of RAM for it to work!"
+        Echo "* If it freezes or fails, this may mean that you do not have enough RAM."
+        Echo "* You may select N if this happens, but make sure that you have enough storage space."
+        read -p "$(Input 'Memory option? (press Enter/Return if unsure) (Y/n):')" JBMemory
+        [[ $JBMemory != n ]] && [[ $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
+        Log "Preparing custom IPSW..."
+        cp -rf resources/FirmwareBundles FirmwareBundles
+        $ipsw $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -S 50 ${JBFiles[@]}
+    elif [[ ! -e $IPSWCustom.ipsw ]]; then
+        Echo "* By default, memory option is set to Y."
+        Echo "* Make sure that you have at least 8GB of RAM for it to work!"
+        Echo "* If it freezes or fails, this may mean that you do not have enough RAM."
+        Echo "* You may select N if this happens, but make sure that you have enough storage space."
         read -p "$(Input 'Memory option? (press Enter/Return if unsure) (Y/n):')" JBMemory
         [[ $JBMemory != n ]] && [[ $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW with ch3rryflower..."
@@ -489,7 +512,7 @@ Downgrade() {
     unzip -q $IPSW.ipsw -d $IPSW/
     Log "Proceeding to idevicerestore... (Enter root password of your PC/Mac when prompted)"
     [[ $platform == macos ]] && sudo codesign --sign - --force --deep $idevicerestore
-    $idevicerestore -yew $IPSW.ipsw
+    $idevicerestore -ewy $IPSW.ipsw
     if [[ $platform == "macos" && $? != 0 ]]; then
         Log "An error seems to have occurred when running idevicerestore."
         Echo "* If this is the \"Killed: 9\" error or similar, try these steps:"

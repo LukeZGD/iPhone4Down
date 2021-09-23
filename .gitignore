@@ -2,7 +2,6 @@
 *.shsh
 *.shsh2
 *.so*
-FirmwareBundles/
 iBoot
 iP*
 libimobiledevice*/
