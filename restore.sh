@@ -39,7 +39,7 @@ Main() {
     Echo "* Downgrade script by LukeZGD"
     Echo "* This script uses ch3rryflower by dora2iOS"
     echo
-    
+
     if [[ $OSTYPE == "linux"* ]]; then
         . /etc/os-release 2>/dev/null
         platform="linux"
@@ -71,33 +71,33 @@ Main() {
     [[ $platform == "linux" ]] && irecovery="sudo LD_LIBRARY_PATH=./resources/lib $irecovery"
     partialzip="./resources/tools/partialzip_$platform"
     tsschecker="resources/tools/tsschecker_$platform"
-    
+
     if [[ ! $platform ]]; then
         Error "Platform unknown/not supported."
     fi
-    
+
     if [[ ! -d ./resources ]]; then
         Error "resources folder cannot be found. Replace resources folder and try again" \
         "If resources folder is present try removing spaces from path/folder name"
     fi
-    
+
     chmod +x ./resources/*.sh ./resources/tools/*
     if [[ $? == 1 ]]; then
         Log "Warning - An error occurred in chmod. This might cause problems..."
     fi
-    
+
     if [[ ! $(ping -c1 1.1.1.1 2>/dev/null) ]]; then
         Error "Please check your Internet connection before proceeding."
     fi
-    
+
     if [[ $(uname -m) != "x86_64" ]]; then
         Error "Only 64-bit (x86_64) distributions are supported."
     fi
-    
+
     if [[ $1 == Install || ! $(which $irecoverychk) || ! $(which $bspatch) || ! $(which $ideviceinfo) ]]; then
         InstallDepends
     fi
-    
+
     if [[ ! -d resources/ch3rryflower ]]; then
         mkdir tmp 2>/dev/null
         cd tmp
@@ -109,7 +109,7 @@ Main() {
         cd ..
     fi
     SaveExternal ipwndfu
-    
+
     Log "Running on platform: $platform ($platformver)"
     echo
     Log "Finding device in normal mode..."
@@ -120,7 +120,7 @@ Main() {
     fi
     [[ $irecovery2 == "DFU" ]] && DFUDevice=1
     [[ $irecovery2 == "Recovery" ]] && RecoveryDevice=1
-    
+
     if [[ $DFUDevice == 1 ]] || [[ $RecoveryDevice == 1 ]]; then
         ProdCut=7
         ProductType=$($irecovery -qv 2>&1 | grep "iP" | cut -c 14-)
@@ -140,13 +140,13 @@ Main() {
     elif [[ $ProductType != iPhone3,1 ]]; then
         Error "Your device $ProductType is not supported."
     fi
-    
+
     iBSSURL=http://appldnld.apple.com/iOS7.1/031-4812.20140627.cq6y8/iPhone3,1_7.1.2_11D257_Restore.ipsw
     iBSS="iBSS.n90ap.RELEASE"
-    
+
     Clean
     mkdir tmp
-    
+
     if [[ $DFUDevice != 1 ]] && [[ $RecoveryDevice != 1 ]]; then
         Log "Device in normal mode detected."
         Echo "* The device needs to be in recovery/DFU mode before proceeding."
@@ -159,12 +159,12 @@ Main() {
     elif [[ $RecoveryDevice == 1 ]]; then
         Recovery
     fi
-    
+
     if [[ $DFUDevice == 1 ]] && [[ $pwnDFUDevice != 1 ]]; then
         Log "Device in DFU mode detected."
         EnterPwnDFU
     fi
-    
+
     if [[ $1 ]] && [[ $1 != 'NoColor' ]]; then
         Mode="$1"
     else
@@ -367,7 +367,7 @@ Downgrade() {
         [[ ! -e $IPSW.ipsw ]] && Error "iOS $OSVer-$BuildVer IPSW cannot be found."
         [[ ! -e $IPSW7.ipsw ]] && Error "iOS 7.1.2 IPSW cannot be found."
     fi
-    
+
     if [[ $OSVer == 7.1.1 ]]; then
         IV=b110991061d76f74c1fc05ddd7cff540
         Key=c6fbf428e0105ab22b2abaefd20ca22c2084e200f74e8a3b08298a54f8bfe28f
@@ -432,7 +432,7 @@ Downgrade() {
         Key=0958d70e1a292483d4e32ed1e911d2b16b6260856be67d00a33b6a1801711d32
         ios4="-ios433"
     fi
-    
+
     if [[ $Jailbreak == 1 ]]; then
         if [[ $OSVer == 7.1.2 ]]; then
             JBFiles=(Cydia7.tar panguaxe.tar fstab7.tar)
@@ -462,7 +462,7 @@ Downgrade() {
             JBFiles[$i]=resources/jailbreak/${JBFiles[$i]}
         done
     fi
-    
+
     if [ ! -e saved/shsh/blobs712_${UniqueChipID}.shsh ]; then
         Log "Saving 7.1.2 blobs with tsschecker..."
         $tsschecker -d $ProductType -i 7.1.2 -e $UniqueChipID -m resources/BuildManifest.plist -s
@@ -477,7 +477,7 @@ Downgrade() {
     fi
     mkdir shsh
     mv $SHSH shsh/${UniqueChipID}-${ProductType}-${OSVer}.shsh
-    
+
     [[ $OSVer == 4.3* ]] && IPSWCustom=$IPSWCustom-$UniqueChipID
     if [[ ! -e $IPSWCustom.ipsw && $Mode == 'Restore712' ]]; then
         Echo "* By default, memory option is set to Y."
@@ -507,7 +507,7 @@ Downgrade() {
     fi
     [ ! -e $IPSWCustom.ipsw ] && Error "Failed to find custom IPSW. Please run the script again" "You may try selecting N for memory option"
     IPSW=$IPSWCustom
-    
+
     Log "Extracting IPSW..."
     unzip -q $IPSW.ipsw -d $IPSW/
     Log "Proceeding to idevicerestore... (Enter root password of your PC/Mac when prompted)"
@@ -556,22 +556,20 @@ InstallDepends() {
     cd resources
     rm -rf lib/* libimobiledevice* libirecovery
     cd ../tmp
-    
+
     Log "Installing dependencies..."
     if [[ $ID == "arch" || $ID_LIKE == "arch" || $ID == "artix" ]]; then
         sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl expect libimobiledevice libusbmuxd libzip python2 unzip usbmuxd usbutils vim xmlstarlet
-    
+
     elif [[ ! -z $UBUNTU_CODENAME && $VERSION_ID == "2"* ]] ||
          [[ $VERSION == "11 (bullseye)" || $PRETTY_NAME == "Debian"*"sid" ]]; then
         [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository -y universe
         sudo apt update
         sudo apt install -y bsdiff curl expect git libimobiledevice6 python2 unzip usbmuxd usbutils xmlstarlet xxd
-        SavePkg
-    
+
     elif [[ $ID == "fedora" ]] && (( $VERSION_ID <= 33 )); then
-        sudo dnf install -y bsdiff expect git libimobiledevice libzip perl-Digest-SHA python2 vim-common xmlstarlet
-        SavePkg
-    
+        sudo dnf install -y bsdiff expect git libimobiledevice perl-Digest-SHA python2 vim-common xmlstarlet
+
     elif [[ $ID == "opensuse-tumbleweed" || $PRETTY_NAME == "openSUSE Leap 15.3" ]]; then
         if [[ $ID == "opensuse-tumbleweed" ]]; then
             libimobiledevice="libimobiledevice-1_0-6"
@@ -580,32 +578,32 @@ InstallDepends() {
             ln -sf /lib64/libreadline.so.7 ../resources/lib/libreadline.so.8
         fi
         sudo zypper -n in bsdiff curl expect git $libimobiledevice libzip5 python-base vim xmlstarlet
-    
+
     elif [[ $OSTYPE == "darwin"* ]]; then
         xcode-select --install
         libimobiledevice=("https://github.com/libimobiledevice-win32/imobiledevice-net/releases/download/v1.3.14/libimobiledevice.1.2.1-r1116-osx-x64.zip" "328e809dea350ae68fb644225bbf8469c0f0634b")
-        
+
     else
         Error "Distro not detected/supported by the install script." "See the repo README for supported OS versions/distros"
     fi
-    
+
     if [[ $platform == "linux" ]]; then
         libimobiledevice=("https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/libimobiledevice_linux.zip" "4344b3ca95d7433d5a49dcacc840d47770ba34c4")
     fi
-    
+
     if [[ ! -d ../resources/libimobiledevice_$platform ]]; then
         SaveFile ${libimobiledevice[0]} libimobiledevice.zip ${libimobiledevice[1]}
         mkdir ../resources/libimobiledevice_$platform
         unzip libimobiledevice.zip -d ../resources/libimobiledevice_$platform
         chmod +x ../resources/libimobiledevice_$platform/*
     fi
-    
+
     if [[ $platform == "macos" ]]; then
         Echo "* macOS device detected. For macOS, it is recommended to use cherryflowerJB instead as this script is mostly aimed for Linux users"
         Echo "* If you still want to use this, you need to have Homebrew installed, and install libpng using 'brew install libpng'"
         Echo "* There may be other dependencies needed but I haven't tested it"
     fi
-    
+
     Log "Install script done! Please run the script again to proceed"
     exit 0
 }
@@ -637,16 +635,6 @@ SaveFile() {
     if [[ $(shasum $2 | awk '{print $1}') != $3 ]]; then
         Error "Verifying failed. Please run the script again" "./restore.sh Install"
     fi
-}
-
-SavePkg() {
-    if [[ ! -d ../saved/lib ]]; then
-        Log "Downloading packages..."
-        SaveFile https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/depends2_linux.zip depends_linux.zip 38cf1db21c9aba88f0de95a1a7959ac2ac53c464
-        mkdir -p ../saved/lib
-        unzip depends_linux.zip -d ../saved/lib
-    fi
-    cp ../saved/lib/* .
 }
 
 cd "$(dirname $0)"
