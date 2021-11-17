@@ -20,7 +20,7 @@ Echo() {
 
 Error() {
     echo -e "\n${Color_R}[Error] $1 ${Color_N}"
-    [[ ! -z $2 ]] && echo "${Color_R}* $2 ${Color_N}"
+    [[ -n $2 ]] && echo "${Color_R}* $2 ${Color_N}"
     echo
     exit 1
 }
@@ -253,7 +253,7 @@ Action() {
     Log "Option: $Mode"
     if [[ $Mode == 'Downgrade' || $Mode == 'Restore712' ]]; then
         read -p "$(Input 'Jailbreak the selected iOS version? (Y/n):')" Jailbreak
-        [[ $Jailbreak != n || $Jailbreak != N ]] && Jailbreak=1
+        [[ $Jailbreak != n && $Jailbreak != N ]] && Jailbreak=1
     fi
 
     [[ $Mode == 'Downgrade' || $Mode == 'Restore712' ]] && Downgrade
@@ -356,6 +356,23 @@ Remove4() {
     Log "Done!"
     Echo "* If disabling the exploit did not work and the device is getting stuck after restore:"
     Echo "* You may try another method for clearing NVRAM. See the README for more details"
+}
+
+iDeviceRestore() {
+    Log "Extracting IPSW..."
+    unzip -q $IPSW.ipsw -d $IPSW/
+    Log "Proceeding to idevicerestore... (Enter root password of your PC/Mac when prompted)"
+    [[ $platform == "macos" ]] && sudo codesign --sign - --force --deep $idevicerestore
+    [[ $1 == "latest" ]] && ExtraArgs="-ey" || ExtraArgs="-ewy"
+    $idevicerestore $ExtraArgs $IPSW.ipsw
+    if [[ $platform == "macos" && $? != 0 ]]; then
+        Log "An error seems to have occurred when running idevicerestore."
+        Echo "* If this is the \"Killed: 9\" error or similar, try these steps:"
+        Echo "* Using Terminal, cd to where the script is located, then run"
+        Echo "* sudo codesign --sign - --force --deep resources/tools/idevicerestore_macos"
+    fi
+    Log "Restoring done!"
+    Log "Downgrade script done!"
 }
 
 Downgrade() {
@@ -479,7 +496,10 @@ Downgrade() {
     mv $SHSH shsh/${UniqueChipID}-${ProductType}-${OSVer}.shsh
 
     [[ $OSVer == 4.3* ]] && IPSWCustom=$IPSWCustom-$UniqueChipID
-    if [[ ! -e $IPSWCustom.ipsw && $Mode == 'Restore712' ]]; then
+    if [[ $Mode == 'Restore712' && $Jailbreak != 1 ]]; then
+        iDeviceRestore latest
+        exit
+    elif [[ $Mode == 'Restore712' && ! -e $IPSWCustom.ipsw ]]; then
         Echo "* By default, memory option is set to Y."
         Echo "* Make sure that you have at least 8GB of RAM for it to work!"
         Echo "* If it freezes or fails, this may mean that you do not have enough RAM."
@@ -488,7 +508,7 @@ Downgrade() {
         [[ $JBMemory != n ]] && [[ $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW..."
         cp -rf resources/FirmwareBundles FirmwareBundles
-        $ipsw $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -S 50 ${JBFiles[@]}
+        $ipsw $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -S 50 "${JBFiles[@]}"
     elif [[ ! -e $IPSWCustom.ipsw ]]; then
         Echo "* By default, memory option is set to Y."
         Echo "* Make sure that you have at least 8GB of RAM for it to work!"
@@ -502,25 +522,13 @@ Downgrade() {
         cherrymac=resources/ch3rryflower/Tools/macos/UNTETHERED
         cp -rf $cherrymac/FirmwareBundles FirmwareBundles
         cp -rf $cherrymac/src src
-        $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot ${JBFiles[@]}
+        $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot "${JBFiles[@]}"
         [[ $OSVer == 4.3* ]] && iOS4Fix
     fi
     [ ! -e $IPSWCustom.ipsw ] && Error "Failed to find custom IPSW. Please run the script again" "You may try selecting N for memory option"
     IPSW=$IPSWCustom
 
-    Log "Extracting IPSW..."
-    unzip -q $IPSW.ipsw -d $IPSW/
-    Log "Proceeding to idevicerestore... (Enter root password of your PC/Mac when prompted)"
-    [[ $platform == macos ]] && sudo codesign --sign - --force --deep $idevicerestore
-    $idevicerestore -ewy $IPSW.ipsw
-    if [[ $platform == "macos" && $? != 0 ]]; then
-        Log "An error seems to have occurred when running idevicerestore."
-        Echo "* If this is the \"Killed: 9\" error or similar, try these steps:"
-        Echo "* Using Terminal, cd to where the script is located, then run"
-        Echo "* sudo codesign --sign - --force --deep resources/tools/idevicerestore_macos"
-    fi
-    Log "Restoring done!"
-    Log "Downgrade script done!"
+    iDeviceRestore
 }
 
 iOS4Fix() {
@@ -561,9 +569,9 @@ InstallDepends() {
     if [[ $ID == "arch" || $ID_LIKE == "arch" || $ID == "artix" ]]; then
         sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl expect libimobiledevice libusbmuxd libzip python2 unzip usbmuxd usbutils vim xmlstarlet
 
-    elif [[ ! -z $UBUNTU_CODENAME && $VERSION_ID == "2"* ]] ||
+    elif [[ -n $UBUNTU_CODENAME && $VERSION_ID == "2"* ]] ||
          [[ $VERSION == "11 (bullseye)" || $PRETTY_NAME == "Debian"*"sid" ]]; then
-        [[ ! -z $UBUNTU_CODENAME ]] && sudo add-apt-repository -y universe
+        [[ -n $UBUNTU_CODENAME ]] && sudo add-apt-repository -y universe
         sudo apt update
         sudo apt install -y bsdiff curl expect git libimobiledevice6 python2 unzip usbmuxd usbutils xmlstarlet xxd
 
