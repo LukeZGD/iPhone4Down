@@ -64,7 +64,6 @@ Main() {
     git="$(which git)"
     ideviceenterrecovery="./resources/libimobiledevice_$platform/ideviceenterrecovery"
     ideviceinfo="./resources/libimobiledevice_$platform/ideviceinfo"
-    iproxy="./resources/libimobiledevice_$platform/iproxy"
     ipsw="./resources/tools/ipsw_$platform"
     irecoverychk="./resources/libimobiledevice_$platform/irecovery"
     irecovery="$irecoverychk"
@@ -72,8 +71,8 @@ Main() {
     partialzip="./resources/tools/partialzip_$platform"
     tsschecker="resources/tools/tsschecker_$platform"
 
-    if [[ ! $platform ]]; then
-        Error "Platform unknown/not supported."
+    if [[ $EUID == 0 ]]; then
+        Error "Running the script as root is not allowed."
     fi
 
     if [[ ! -d ./resources ]]; then
@@ -81,12 +80,18 @@ Main() {
         "If resources folder is present try removing spaces from path/folder name"
     fi
 
-    chmod +x ./resources/*.sh ./resources/tools/*
-    if [[ $? == 1 ]]; then
-        Log "Warning - An error occurred in chmod. This might cause problems..."
+    if [[ ! $platform ]]; then
+        Error "Platform unknown/not supported."
     fi
 
-    if [[ ! $(ping -c1 1.1.1.1 2>/dev/null) ]]; then
+    chmod +x ./resources/*.sh ./resources/tools/*
+    if [[ $? != 0 ]]; then
+        Error "A problem with file permissions has been detected, cannot proceed."
+    fi
+
+    Log "Checking Internet connection..."
+    ping -c1 8.8.8.8 >/dev/null
+    if [[ $? != 0 ]]; then
         Error "Please check your Internet connection before proceeding."
     fi
 
@@ -94,7 +99,13 @@ Main() {
         Error "Only 64-bit (x86_64) distributions are supported."
     fi
 
-    if [[ $1 == Install || ! $(which $irecoverychk) || ! $(which $bspatch) || ! $(which $ideviceinfo) ]]; then
+    if [[ $1 == "Install" || -z $bspatch || ! -e $ideviceinfo || ! -e $irecoverychk ||
+          ! -e $ideviceenterrecovery || -z $python ||
+          ! -d ./resources/libimobiledevice_$platform ]]; then
+        if [[ ! -e $ideviceinfo || ! -e $irecoverychk ||
+              ! -e $ideviceenterrecovery ]]; then
+            rm -rf ./resources/libimobiledevice_$platform
+        fi
         InstallDepends
     fi
 
@@ -111,8 +122,7 @@ Main() {
     SaveExternal ipwndfu
 
     Log "Running on platform: $platform ($platformver)"
-    echo
-    Log "Finding device in normal mode..."
+    Log "Finding device in Normal mode..."
     ideviceinfo2=$($ideviceinfo -s)
     if [[ $? != 0 ]]; then
         Log "Finding device in DFU/recovery mode..."
@@ -596,7 +606,7 @@ InstallDepends() {
     fi
 
     if [[ $platform == "linux" ]]; then
-        libimobiledevice=("https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/libimobiledevice_linux.zip" "4344b3ca95d7433d5a49dcacc840d47770ba34c4")
+        libimobiledevice=("https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/libimobiledevice_linux.zip" "95e2ffc86b35c71039fcf3ef732e30dd766112ce")
     fi
 
     if [[ ! -d ../resources/libimobiledevice_$platform ]]; then
