@@ -2,7 +2,7 @@
 trap "Clean" EXIT
 trap "Clean; exit 1" INT TERM
 
-if [[ $1 != "NoColor" ]] && [[ $2 != "NoColor" ]]; then
+if [[ $1 != "NoColor" && $2 != "NoColor" ]]; then
     Color_R=$(tput setaf 9)
     Color_G=$(tput setaf 10)
     Color_B=$(tput setaf 12)
@@ -35,11 +35,12 @@ Log() {
 
 Main() {
     clear
-    Echo "***** iPhone4Down *****"
-    Echo "* Downgrade script by LukeZGD"
+    Echo "******* iPhone4Down *******"
+    Echo "* Downgrader script by LukeZGD"
     Echo "* This script uses ch3rryflower by dora2iOS"
     echo
 
+    cherrymac="./resources/ch3rryflower/Tools/macos/UNTETHERED"
     if [[ $OSTYPE == "linux"* ]]; then
         . /etc/os-release 2>/dev/null
         platform="linux"
@@ -50,17 +51,20 @@ Main() {
         pwnedDFU="sudo $cherry/pwnedDFU"
         python="$(which python2)"
         ipwndfu="sudo $python ipwndfu"
+        xmlstarlet="$(which xmlstarlet)"
 
     elif [[ $OSTYPE == "darwin"* ]]; then
         platform="macos"
         platformver="${1:-$(sw_vers -productVersion)}"
         bspatch="/usr/bin/bspatch"
-        cherry="./resources/ch3rryflower/Tools/macos/UNTETHERED"
+        cherry="$cherrymac"
         idevicerestore="./resources/tools/idevicerestore_macos"
         pwnedDFU="$cherry/pwnedDFU"
         python="/usr/bin/python"
         ipwndfu="$python ipwndfu"
+        xmlstarlet=/
     fi
+    expect="$(which expect)"
     git="$(which git)"
     ideviceenterrecovery="./resources/libimobiledevice_$platform/ideviceenterrecovery"
     ideviceinfo="./resources/libimobiledevice_$platform/ideviceinfo"
@@ -100,7 +104,7 @@ Main() {
     fi
 
     if [[ $1 == "Install" || -z $bspatch || ! -e $ideviceinfo || ! -e $irecoverychk ||
-          ! -e $ideviceenterrecovery || -z $python ||
+          ! -e $ideviceenterrecovery || -z $python || -z $expect || -z $xmlstarlet ||
           ! -d ./resources/libimobiledevice_$platform ]]; then
         if [[ ! -e $ideviceinfo || ! -e $irecoverychk ||
               ! -e $ideviceenterrecovery ]]; then
@@ -126,12 +130,13 @@ Main() {
     ideviceinfo2=$($ideviceinfo -s)
     if [[ $? != 0 ]]; then
         Log "Finding device in DFU/recovery mode..."
+        [[ $platform == "linux" ]] && Echo "* Enter root password of your PC when prompted"
         irecovery2=$($irecovery -q 2>/dev/null | grep 'MODE' | cut -c 7-)
     fi
     [[ $irecovery2 == "DFU" ]] && DFUDevice=1
     [[ $irecovery2 == "Recovery" ]] && RecoveryDevice=1
 
-    if [[ $DFUDevice == 1 ]] || [[ $RecoveryDevice == 1 ]]; then
+    if [[ $DFUDevice == 1 || $RecoveryDevice == 1 ]]; then
         ProdCut=7
         ProductType=$($irecovery -qv 2>&1 | grep "iP" | cut -c 14-)
         [[ $(echo $ProductType | cut -c 3) == 'h' ]] && ProdCut=9
@@ -139,13 +144,13 @@ Main() {
         UniqueChipID=$((16#$(echo $($irecovery -q | grep 'ECID' | cut -c 7-) | cut -c 3-)))
     else
         ProductType=$(echo "$ideviceinfo2" | grep 'ProductType' | cut -c 14-)
-        [ ! $ProductType ] && ProductType=$($ideviceinfo | grep 'ProductType' | cut -c 14-)
+        [[ ! $ProductType ]] && ProductType=$($ideviceinfo | grep 'ProductType' | cut -c 14-)
         ProductVer=$(echo "$ideviceinfo2" | grep 'ProductVer' | cut -c 17-)
         VersionDetect=$(echo $ProductVer | cut -c 1)
         UniqueChipID=$(echo "$ideviceinfo2" | grep 'UniqueChipID' | cut -c 15-)
         UniqueDeviceID=$(echo "$ideviceinfo2" | grep 'UniqueDeviceID' | cut -c 17-)
     fi
-    if [ ! $UniqueChipID ]; then
+    if [[ ! $UniqueChipID ]]; then
         Error "No device detected."
     elif [[ $ProductType != iPhone3,1 ]]; then
         Error "Your device $ProductType is not supported."
@@ -157,11 +162,11 @@ Main() {
     Clean
     mkdir tmp
 
-    if [[ $DFUDevice != 1 ]] && [[ $RecoveryDevice != 1 ]]; then
+    if [[ $DFUDevice != 1 && $RecoveryDevice != 1 ]]; then
         Log "Device in normal mode detected."
         Echo "* The device needs to be in recovery/DFU mode before proceeding."
         read -p "$(Input 'Send device to recovery mode? (y/N):')" Jailbroken
-        if [[ $Jailbroken == y ]] || [[ $Jailbroken == Y ]]; then
+        if [[ $Jailbroken == y || $Jailbroken == Y ]]; then
             Recovery
         else
             exit 0
@@ -170,12 +175,12 @@ Main() {
         Recovery
     fi
 
-    if [[ $DFUDevice == 1 ]] && [[ $pwnDFUDevice != 1 ]]; then
+    if [[ $DFUDevice == 1 && $pwnDFUDevice != 1 ]]; then
         Log "Device in DFU mode detected."
         EnterPwnDFU
     fi
 
-    if [[ $1 ]] && [[ $1 != 'NoColor' ]]; then
+    if [[ $1 && $1 != 'NoColor' ]]; then
         Mode="$1"
     else
         Selection=("Downgrade device" "Disable/Enable exploit" "Restore to 7.1.2" "(Re-)Install Dependencies" "(Any other key to exit)")
@@ -294,7 +299,7 @@ Recovery() {
     fi
     Log "Device in recovery mode detected. Get ready to enter DFU mode"
     read -p "$(Input 'Select Y to continue, N to exit recovery (Y/n)')" RecoveryDFU
-    if [[ $RecoveryDFU == n ]] || [[ $RecoveryDFU == N ]]; then
+    if [[ $RecoveryDFU == n || $RecoveryDFU == N ]]; then
         Log "Exiting recovery mode."
         $irecovery -n
         exit 0
@@ -336,7 +341,7 @@ Remove4() {
             * ) exit 0;;
         esac
     done
-    if [ ! -e saved/iBSS_8L1 ]; then
+    if [[ ! -e saved/iBSS_8L1 ]]; then
         Log "Downloading iBSS..."
         $partialzip http://appldnld.apple.com/iPhone4/041-1966.20110721.V3Ufe/iPhone3,1_4.3.5_8L1_Restore.ipsw Firmware/dfu/iBSS.n90ap.RELEASE.dfu iBSS
         mkdir saved 2>/dev/null
@@ -371,7 +376,8 @@ Remove4() {
 iDeviceRestore() {
     Log "Extracting IPSW..."
     unzip -q $IPSW.ipsw -d $IPSW/
-    Log "Proceeding to idevicerestore... (Enter root password of your PC/Mac when prompted)"
+    Log "Proceeding to idevicerestore..."
+    Echo "* Enter root password of your PC/Mac when prompted"
     [[ $platform == "macos" ]] && sudo codesign --sign - --force --deep $idevicerestore
     [[ $1 == "latest" ]] && ExtraArgs="-ey" || ExtraArgs="-ewy"
     $idevicerestore $ExtraArgs $IPSW.ipsw
@@ -461,7 +467,7 @@ Downgrade() {
     fi
 
     if [[ $Jailbreak == 1 ]]; then
-        if [[ $OSVer == 7.1.2 ]]; then
+        if [[ $OSVer == 7.1* ]]; then
             JBFiles=(Cydia7.tar panguaxe.tar fstab7.tar)
             JBSHA1=bba5022d6749097f47da48b7bdeaa3dc67cbf2c4
         elif [[ $OSVer == 7.* ]]; then
@@ -473,7 +479,7 @@ Downgrade() {
         elif [[ $OSVer == 6.* ]]; then
             JBFiles=(Cydia6.tar evasi0n6-untether.tar)
             JBSHA1=1d5a351016d2546aa9558bc86ce39186054dc281
-        elif [[ $OSVer == 5.* ]] || [[ $OSVer == 4.3* ]]; then
+        elif [[ $OSVer == 5.* || $OSVer == 4.3* ]]; then
             JBFiles=(Cydia5.tar unthredeh4il.tar)
             JBSHA1=f5b5565640f7e31289919c303efe44741e28543a
         fi
@@ -490,11 +496,11 @@ Downgrade() {
         done
     fi
 
-    if [ ! -e saved/shsh/blobs712_${UniqueChipID}.shsh ]; then
+    if [[ ! -e saved/shsh/blobs712_${UniqueChipID}.shsh ]]; then
         Log "Saving 7.1.2 blobs with tsschecker..."
         $tsschecker -d $ProductType -i 7.1.2 -e $UniqueChipID -m resources/BuildManifest.plist -s
         SHSH=$(ls ${UniqueChipID}_${ProductType}_7.1.2-11D257_*.shsh2)
-        [ ! $SHSH ] && Error "Saving $OSVer blobs failed. Please run the script again"
+        [[ ! $SHSH ]] && Error "Saving $OSVer blobs failed. Please run the script again"
         mkdir saved/shsh 2>/dev/null
         cp $SHSH saved/shsh/blobs712_${UniqueChipID}.shsh
         Log "Successfully saved 7.1.2 blobs."
@@ -515,7 +521,7 @@ Downgrade() {
         Echo "* If it freezes or fails, this may mean that you do not have enough RAM."
         Echo "* You may select N if this happens, but make sure that you have enough storage space."
         read -p "$(Input 'Memory option? (press Enter/Return if unsure) (Y/n):')" JBMemory
-        [[ $JBMemory != n ]] && [[ $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
+        [[ $JBMemory != n && $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW..."
         cp -rf resources/FirmwareBundles FirmwareBundles
         $ipsw $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -S 50 "${JBFiles[@]}"
@@ -525,17 +531,16 @@ Downgrade() {
         Echo "* If it freezes or fails, this may mean that you do not have enough RAM."
         Echo "* You may select N if this happens, but make sure that you have enough storage space."
         read -p "$(Input 'Memory option? (press Enter/Return if unsure) (Y/n):')" JBMemory
-        [[ $JBMemory != n ]] && [[ $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
+        [[ $JBMemory != n && $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW with ch3rryflower..."
         sed -z -i "s|\n../bin|\n../$cherry/bin|g" $cherry/make_iBoot.sh
         $cherry/make_iBoot.sh $IPSW.ipsw -iv $IV -k $Key $ios4
-        cherrymac=resources/ch3rryflower/Tools/macos/UNTETHERED
         cp -rf $cherrymac/FirmwareBundles FirmwareBundles
         cp -rf $cherrymac/src src
         $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot "${JBFiles[@]}"
         [[ $OSVer == 4.3* ]] && iOS4Fix
     fi
-    [ ! -e $IPSWCustom.ipsw ] && Error "Failed to find custom IPSW. Please run the script again" "You may try selecting N for memory option"
+    [[ ! -e $IPSWCustom.ipsw ]] && Error "Failed to find custom IPSW. Please run the script again" "You may try selecting N for memory option"
     IPSW=$IPSWCustom
 
     iDeviceRestore
@@ -576,6 +581,12 @@ InstallDepends() {
     cd ../tmp
 
     Log "Installing dependencies..."
+    if [[ $platform == "linux" ]]; then
+        Echo "* iPhone4Down will be installing dependencies from your distribution's package manager"
+        Echo "* Enter root password of your PC when prompted"
+        Input "Press Enter/Return to continue (or press Ctrl+C to cancel)"
+        read -s
+    fi
     if [[ $ID == "arch" || $ID_LIKE == "arch" || $ID == "artix" ]]; then
         sudo pacman -Syu --noconfirm --needed base-devel bsdiff curl expect libimobiledevice libusbmuxd libzip python2 unzip usbmuxd usbutils vim xmlstarlet
 
