@@ -304,12 +304,12 @@ Recovery() {
         $irecovery -n
         exit 0
     fi
-    Echo "* Hold POWER and HOME button for 10 seconds."
+    Echo "* Hold TOP and HOME buttons for 10 seconds."
     for i in {10..01}; do
         echo -n "$i "
         sleep 1
     done
-    echo -e "\n$(Echo '* Release POWER and hold HOME button for 8 seconds.')"
+    echo -e "\n$(Echo '* Release TOP button and hold HOME button for 8 seconds.')"
     for i in {08..01}; do
         echo -n "$i "
         sleep 1
