@@ -524,7 +524,7 @@ Downgrade() {
         [[ $JBMemory != n && $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW..."
         cp -rf resources/FirmwareBundles FirmwareBundles
-        $ipsw $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -S 50 "${JBFiles[@]}"
+        $ipsw $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -S 50 ${JBFiles[@]}
     elif [[ ! -e $IPSWCustom.ipsw ]]; then
         Echo "* By default, memory option is set to Y."
         Echo "* Make sure that you have at least 8GB of RAM for it to work!"
@@ -537,7 +537,7 @@ Downgrade() {
         $cherry/make_iBoot.sh $IPSW.ipsw -iv $IV -k $Key $ios4
         cp -rf $cherrymac/FirmwareBundles FirmwareBundles
         cp -rf $cherrymac/src src
-        $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot "${JBFiles[@]}"
+        $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot ${JBFiles[@]}
         [[ $OSVer == 4.3* ]] && iOS4Fix
     fi
     [[ ! -e $IPSWCustom.ipsw ]] && Error "Failed to find custom IPSW. Please run the script again" "You may try selecting N for memory option"
