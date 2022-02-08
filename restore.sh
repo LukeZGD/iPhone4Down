@@ -117,7 +117,7 @@ Main() {
         mkdir tmp 2>/dev/null
         cd tmp
         Log "Downloading ch3rryflower..."
-        SaveFile https://github.com/dora2-iOS/ch3rryflower/archive/316d2cdc5351c918e9db9650247b91632af3f11f.zip ch3rryflower.zip 790d56db354151b9740c929e52c097ba57f2929d
+        SaveFile https://web.archive.org/web/20210529174714if_/https://codeload.github.com/dora2-iOS/ch3rryflower/zip/316d2cdc5351c918e9db9650247b91632af3f11f ch3rryflower.zip 790d56db354151b9740c929e52c097ba57f2929d
         cd ../resources
         unzip -q ../tmp/ch3rryflower.zip -d .
         mv ch3rryflower* ch3rryflower
