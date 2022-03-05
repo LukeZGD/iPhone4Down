@@ -2,8 +2,8 @@
 
 - **Downgrade your iPhone 4 on Linux (using ch3rryflower)**
 - **Linux and macOS** are supported
-- **Read the ["How to Use" wiki page](https://github.com/LukeZGD/iOS-OTA-Downgrader/wiki/How-to-Use) for a step-by-step tutorial**
-- **Read the ["Troubleshooting" wiki page](https://github.com/LukeZGD/iOS-OTA-Downgrader/wiki/Troubleshooting) for tips, frequent questions, and troubleshooting**
+- **Read the ["How to Use" wiki page](https://github.com/LukeZGD/iPhone4Down/wiki/How-to-Use) for a step-by-step tutorial**
+- **Read the ["Troubleshooting" wiki page](https://github.com/LukeZGD/iPhone4Down/wiki/Troubleshooting) for tips, frequent questions, and troubleshooting**
 
 ## Other features
 - iPhone4Down can be also used to restore back to iOS 7.1.2 with the option to jailbreak the install
