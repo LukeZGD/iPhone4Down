@@ -130,7 +130,7 @@ Main() {
     ideviceinfo2=$($ideviceinfo -s)
     if [[ $? != 0 ]]; then
         Log "Finding device in DFU/recovery mode..."
-        [[ $platform == "linux" ]] && Echo "* Enter root password of your PC when prompted"
+        [[ $platform == "linux" ]] && Echo "* Enter your user password when prompted"
         irecovery2=$($irecovery -q 2>/dev/null | grep 'MODE' | cut -c 7-)
     fi
     [[ $irecovery2 == "DFU" ]] && DFUDevice=1
@@ -183,13 +183,13 @@ Main() {
     if [[ $1 && $1 != 'NoColor' ]]; then
         Mode="$1"
     else
-        Selection=("Downgrade device" "Disable/Enable exploit" "Restore to 7.1.2" "(Re-)Install Dependencies" "(Any other key to exit)")
+        Selection=("Downgrade Device" "Disable/Enable Exploit" "Restore to 7.1.2" "(Re-)Install Dependencies" "(Any other key to exit)")
         Echo "*** Main Menu ***"
         Input "Select an option:"
         select opt in "${Selection[@]}"; do
             case $opt in
-                "Downgrade device" ) Mode='Downgrade'; break;;
-                "Disable/Enable exploit" ) Mode='Remove4'; break;;
+                "Downgrade Device" ) Mode='Downgrade'; break;;
+                "Disable/Enable Exploit" ) Mode='Remove4'; break;;
                 "Restore to 7.1.2" ) Mode='Restore712'; break;;
                 "(Re-)Install Dependencies" ) InstallDepends;;
                 * ) exit 0;;
@@ -220,7 +220,7 @@ SelectVersion() {
             "More versions (5.0-6.1.2)" ) OSVer='More'; break;;
             "4.3.x (not supported)" ) OSVer='4.3.x'; break;;
             "7.x (not supported)" ) OSVer='7.x'; break;;
-            *) exit 0;;
+            * ) exit 0;;
         esac
     done
     if [[ $OSVer == 'More' ]]; then
@@ -233,7 +233,7 @@ SelectVersion() {
                 "5.1" ) OSVer='5.1'; BuildVer='9B176'; break;;
                 "5.0.1" ) OSVer='5.0.1'; BuildVer='9A405'; break;;
                 "5.0" ) OSVer='5.0'; BuildVer='9A334'; break;;
-                *) exit 0;;
+                * ) exit 0;;
             esac
         done
     elif [[ $OSVer == '4.3.x' ]]; then
@@ -243,7 +243,7 @@ SelectVersion() {
                 "4.3.5" ) OSVer='4.3.5'; BuildVer='8L1'; break;;
                 "4.3.3" ) OSVer='4.3.3'; BuildVer='8J2'; break;;
                 "4.3" ) OSVer='4.3'; BuildVer='8F190'; break;;
-                *) exit 0;;
+                * ) exit 0;;
             esac
         done
     elif [[ $OSVer == '7.x' ]]; then
@@ -257,7 +257,7 @@ SelectVersion() {
                 "7.0.3" ) OSVer='7.0.3'; BuildVer='11B511'; break;;
                 "7.0.2" ) OSVer='7.0.2'; BuildVer='11A501'; break;;
                 "7.0" ) OSVer='7.0'; BuildVer='11A465'; break;;
-                *) exit 0;;
+                * ) exit 0;;
             esac
         done
     fi
@@ -283,7 +283,7 @@ SelectDFU() {
         select opt in "${Selection[@]}"; do
         case $opt in
             "ipwndfu" ) pwnedDFU=$ipwndfu; break;;
-            *) break;;
+            * ) break;;
         esac
     done
 }
@@ -377,7 +377,7 @@ iDeviceRestore() {
     Log "Extracting IPSW..."
     unzip -q $IPSW.ipsw -d $IPSW/
     Log "Proceeding to idevicerestore..."
-    Echo "* Enter root password of your PC/Mac when prompted"
+    Echo "* Enter your user password when prompted"
     [[ $platform == "macos" ]] && sudo codesign --sign - --force --deep $idevicerestore
     [[ $1 == "latest" ]] && ExtraArgs="-ey" || ExtraArgs="-ewy"
     $idevicerestore $ExtraArgs $IPSW.ipsw
@@ -583,7 +583,7 @@ InstallDepends() {
     Log "Installing dependencies..."
     if [[ $platform == "linux" ]]; then
         Echo "* iPhone4Down will be installing dependencies from your distribution's package manager"
-        Echo "* Enter root password of your PC when prompted"
+        Echo "* Enter your user password when prompted"
         Input "Press Enter/Return to continue (or press Ctrl+C to cancel)"
         read -s
     fi
