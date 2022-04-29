@@ -1,7 +1,6 @@
 *.ipsw
 *.shsh
 *.shsh2
-*.so*
 iBoot
 iP*
 libimobiledevice*/

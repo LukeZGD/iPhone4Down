@@ -71,9 +71,9 @@ Main() {
     ipsw="./resources/tools/ipsw_$platform"
     irecoverychk="./resources/libimobiledevice_$platform/irecovery"
     irecovery="$irecoverychk"
-    [[ $platform == "linux" ]] && irecovery="sudo LD_LIBRARY_PATH=./resources/lib $irecovery"
     partialzip="./resources/tools/partialzip_$platform"
     tsschecker="resources/tools/tsschecker_$platform"
+    [[ $platform == "linux" ]] && irecovery="sudo LD_LIBRARY_PATH=./resources/lib $irecovery"
 
     if [[ $EUID == 0 ]]; then
         Error "Running the script as root is not allowed."
@@ -534,10 +534,10 @@ Downgrade() {
         [[ $JBMemory != n && $JBMemory != N ]] && JBMemory="-memory" || JBMemory=
         Log "Preparing custom IPSW with ch3rryflower..."
         sed -z -i "s|\n../bin|\n../$cherry/bin|g" $cherry/make_iBoot.sh
-        $cherry/make_iBoot.sh $IPSW.ipsw -iv $IV -k $Key $ios4
+        env LD_LIBRARY_PATH=./resources/lib $cherry/make_iBoot.sh $IPSW.ipsw -iv $IV -k $Key $ios4
         cp -rf $cherrymac/FirmwareBundles FirmwareBundles
         cp -rf $cherrymac/src src
-        $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot ${JBFiles[@]}
+        env LD_LIBRARY_PATH=./resources/lib $cherry/cherry $IPSW.ipsw $IPSWCustom.ipsw $JBMemory -derebusantiquis $IPSW7.ipsw iBoot ${JBFiles[@]}
         [[ $OSVer == 4.3* ]] && iOS4Fix
     fi
     [[ ! -e $IPSWCustom.ipsw ]] && Error "Failed to find custom IPSW. Please run the script again" "You may try selecting N for memory option"
@@ -566,7 +566,7 @@ iOS4Fix() {
         sed -i -e 's/[ \t]*//' apticket.plist
     fi
     cat apticket.plist | sed -ne '/<data>/,/<\/data>/p' | sed -e "s/<data>//" | sed "s/<\/data>//" | awk '{printf "%s",$0}' | base64 --decode > apticket.der
-    ../../../../../$cherry/bin/xpwntool apticket.der applelogoT-640x960.s5l8930x.img3 -t scab_template.img3
+    env LD_LIBRARY_PATH=../../../../../resources/lib ../../../../../$cherry/bin/xpwntool apticket.der applelogoT-640x960.s5l8930x.img3 -t scab_template.img3
     cd ../../..
     zip -r0 ../../$IPSWCustom.ipsw Firmware/all_flash/all_flash.n90ap.production/manifest
     zip -r0 ../../$IPSWCustom.ipsw Firmware/all_flash/all_flash.n90ap.production/applelogo4-640x960.s5l8930x.img3
@@ -617,7 +617,7 @@ InstallDepends() {
     fi
 
     if [[ $platform == "linux" ]]; then
-        libimobiledevice=("https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/libimobiledevice_linux.zip" "95e2ffc86b35c71039fcf3ef732e30dd766112ce")
+        libimobiledevice=("https://github.com/LukeZGD/iOS-OTA-Downgrader-Keys/releases/download/tools/libimobiledevice_linux.zip" "fc5e714adf6fa72328d3e1ddea4e633f370559a4")
     fi
 
     if [[ ! -d ../resources/libimobiledevice_$platform ]]; then
