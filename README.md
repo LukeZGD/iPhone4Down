@@ -35,6 +35,7 @@
 - [idevicerestore](https://github.com/LukeeGD/idevicerestore) - LukeZGD fork
 - ipsw tool from [xpwn](https://github.com/LukeZGD/xpwn/tree/ootc) - LukeZGD fork
 - [tsschecker](https://github.com/tihmstar/tsschecker) - tihmstar
+- [tsschecker](https://github.com/1Conan/tsschecker) - 1Conan fork
 - [partial-zip](https://github.com/matteyeux/partial-zip)
 - [evasi0n](https://www.theiphonewiki.com/wiki/Evasi0n)
 - [p0sixspwn](https://www.theiphonewiki.com/wiki/p0sixspwn)

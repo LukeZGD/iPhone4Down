@@ -577,7 +577,7 @@ iOS4Fix() {
 InstallDepends() {
     mkdir tmp 2>/dev/null
     cd resources
-    rm -rf lib/* libimobiledevice* libirecovery
+    rm -rf libimobiledevice* libirecovery
     cd ../tmp
 
     Log "Installing dependencies..."
