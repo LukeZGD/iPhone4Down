@@ -68,7 +68,7 @@ Main() {
     git="$(which git)"
     ideviceenterrecovery="./resources/libimobiledevice_$platform/ideviceenterrecovery"
     ideviceinfo="./resources/libimobiledevice_$platform/ideviceinfo"
-    ipsw="./resources/tools/ipsw_$platform"
+    ipsw="env LD_LIBRARY_PATH=./resources/lib ./resources/tools/ipsw_$platform"
     irecoverychk="./resources/libimobiledevice_$platform/irecovery"
     irecovery="$irecoverychk"
     partialzip="./resources/tools/partialzip_$platform"
