@@ -72,7 +72,7 @@ Main() {
     irecoverychk="./resources/libimobiledevice_$platform/irecovery"
     irecovery="$irecoverychk"
     partialzip="./resources/tools/partialzip_$platform"
-    tsschecker="resources/tools/tsschecker_$platform"
+    tsschecker="./resources/tools/tsschecker_$platform"
     [[ $platform == "linux" ]] && irecovery="sudo LD_LIBRARY_PATH=./resources/lib $irecovery"
 
     if [[ $EUID == 0 ]]; then
